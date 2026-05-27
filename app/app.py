@@ -16,7 +16,9 @@ import os
 import time
 import math
 import threading
+import secrets
 from datetime import datetime, timedelta
+import dns.resolver as _dns_resolver
 
 load_dotenv(os.path.expanduser('~/Desktop/namnge/nyklar/.env'))
 
@@ -100,6 +102,36 @@ def init_db():
         hittade_ledigt BOOLEAN
     )''')
     con.execute('CREATE INDEX IF NOT EXISTS idx_sok_namn ON sokningar(namn)')
+    con.execute('''CREATE TABLE IF NOT EXISTS pending_listings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        doman TEXT UNIQUE,
+        pris INTEGER,
+        saljare_email TEXT,
+        beskrivning TEXT,
+        verify_code TEXT,
+        skapad TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )''')
+    con.execute('''CREATE TABLE IF NOT EXISTS domanmarknaden (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        doman TEXT UNIQUE,
+        pris INTEGER,
+        saljare_email TEXT,
+        beskrivning TEXT,
+        listad TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'aktiv'
+    )''')
+    con.execute('CREATE INDEX IF NOT EXISTS idx_dm_doman ON domanmarknaden(doman)')
+    con.execute('CREATE INDEX IF NOT EXISTS idx_dm_status ON domanmarknaden(status)')
+    con.execute('''CREATE TABLE IF NOT EXISTS provisioner (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        doman TEXT,
+        forsaljningspris INTEGER,
+        provision INTEGER,
+        kopare_email TEXT,
+        saljare_email TEXT,
+        stripe_session_id TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )''')
     con.commit()
     con.close()
 
@@ -116,6 +148,21 @@ def markera_betald(stripe_session_id):
         con.close()
 
 init_db()
+
+def _logga_email(till, amne, text):
+    """Stub — loggar email till konsolen tills SMTP/Mailjet konfigureras."""
+    print(f'[EMAIL] till={till!r} ämne={amne!r}\n{text}', flush=True)
+
+def _kolla_dns_verifiering(doman, verify_code):
+    try:
+        answers = _dns_resolver.resolve(doman, 'TXT')
+        for rdata in answers:
+            for txt_string in rdata.strings:
+                if verify_code.encode() in txt_string:
+                    return True
+    except Exception as e:
+        print(f'[DNS] {doman}: {e}', flush=True)
+    return False
 
 BELOPP_TOKENS = {1900: 50, 4900: 200, 9900: 500}
 
@@ -381,6 +428,7 @@ HTML = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a0a0a' rx='6'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-weight='500' font-size='18'>N</text></svg>">
     <title>Namnverket — Hitta ett namn som faktiskt är ledigt</title>
     <meta name="description" content="Kolla om ett företagsnamn är ledigt hos Bolagsverket, domäner och varumärken i ett slag. Gratis namnkoll för svenska företag.">
     <meta name="keywords" content="företagsnamn, bolagsnamn, domän ledig, namnkoll, registrera företag Sverige, köp domän, registrera domän, billig domän Sverige, .se domän, köp .se, domänregistrering">
@@ -459,11 +507,11 @@ HTML = '''
         .sub { font-size: 15px; color: var(--text-sekunder); margin-bottom: 28px; }
         .input-rad { display: flex; gap: 8px; }
         .input-rad input { flex: 1; height: 48px; padding: 0 14px; font-size: 15px; font-family: 'Inter', sans-serif; border: 1px solid var(--border); border-radius: 8px; outline: none; color: var(--svart); background: #fff; }
-        .input-rad input:focus { border-color: rgba(0,0,0,0.2); }
+        .input-rad input:focus { outline: none; border-color: rgba(0,0,0,0.3); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
         .input-rad button { height: 48px; padding: 0 22px; background: var(--svart); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; margin: 0; width: auto; }
         .input-rad button:hover { background: #1a1a1a; }
-        .slumpa-btn { height: 48px; padding: 0 18px; background: transparent; color: var(--svart); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 400; cursor: pointer; white-space: nowrap; margin: 0; width: auto; }
-        .slumpa-btn:hover { border-color: rgba(0,0,0,0.3); background: rgba(0,0,0,0.03); }
+        .slumpa-btn { height: 48px; padding: 0 18px; background: transparent; color: var(--svart); border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 400; cursor: pointer; white-space: nowrap; margin: 0; width: auto; }
+        .slumpa-btn:hover { background: #fafafa; border-color: rgba(0,0,0,0.4); }
         .gen-link { display: inline-block; margin-top: 14px; font-size: 13px; color: var(--text-tertiar); text-decoration: none; }
         .gen-link:hover { color: var(--svart); }
         #result { margin-top: 40px; }
@@ -507,9 +555,18 @@ HTML = '''
         .paket-kop { border: none; background: var(--svart); color: #fff; border-radius: 999px; padding: 7px 18px; font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; }
         .paket-kop:hover { background: #1a1a1a; }
         .modal-stang { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-tertiar); line-height: 1; padding: 0; margin-top: -4px; }
+        .market-rad { font-size: 13px; color: var(--text-sekunder); padding: 8px 0 10px; border-bottom: 0.5px solid var(--border); }
+        .market-link { color: var(--svart); font-weight: 500; text-decoration: none; border-bottom: 0.5px solid rgba(0,0,0,0.2); padding-bottom: 1px; }
+        .market-link:hover { border-color: var(--svart); }
+        #analys-box { margin-top: 20px; padding: 0; background: none; border-radius: 0; align-items: center; gap: 10px; }
+        #analys-box.expanded { display: block !important; padding: 1.25rem 1.5rem; background: var(--yta); border-radius: 12px; }
+        .mjuka-knapp { border: 0.5px solid rgba(0,0,0,0.15); border-radius: 999px; padding: 8px 18px; font-size: 13px; font-family: 'Inter', sans-serif; background: none; color: var(--svart); cursor: pointer; white-space: nowrap; }
+        .mjuka-knapp:hover { background: var(--yta); }
+        .token-kostnad { font-size: 11px; color: var(--text-tertiar); white-space: nowrap; }
         .faq { margin-top: 52px; padding-top: 36px; border-top: 0.5px solid var(--border); }
         .faq-rubrik { font-size: 11px; letter-spacing: 0.12em; color: var(--text-tertiar); margin-bottom: 20px; font-weight: 400; }
-        details { border-bottom: 0.5px solid var(--border); }
+        details { border-bottom: 0.5px solid var(--border); transition: background 0.15s ease; border-radius: 6px; padding: 0 8px; margin: 0 -8px; }
+        details:hover { background: #fafafa; }
         details summary { font-size: 14px; padding: 14px 0; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none; }
         details summary::-webkit-details-marker { display: none; }
         details summary::after { content: '+'; color: var(--text-tertiar); font-size: 18px; font-weight: 300; margin-left: 12px; flex-shrink: 0; }
@@ -527,8 +584,11 @@ HTML = '''
     </style>
 </head>
 <body>
-    <header>
-        <p class="logo">NAMNVERKET</p>
+    <header style="display:flex;justify-content:space-between;align-items:center;">
+        <p class="logo" style="margin:0;">NAMNVERKET</p>
+        <span style="font-size:12px;color:var(--text-tertiar);cursor:pointer;" onclick="oppnaModal()">
+            <strong id="token-antal">—</strong>&nbsp;tokens
+        </span>
     </header>
     <main>
     <h1>Hitta ett namn som faktiskt är ledigt.</h1>
@@ -542,6 +602,8 @@ HTML = '''
     <a href="/favoriter" class="gen-link" style="margin-left:16px;">&#x2665; sparade</a>
     <a href="/trender" class="gen-link" style="margin-left:16px;">&#x2191; trender</a>
     <a href="/domanmarknaden" class="gen-link" style="margin-left:16px;">&#x25C8; domänmarknaden</a>
+    <a href="/marknadsplats" class="gen-link" style="margin-left:16px;">&#x21C4; marknadsplats</a>
+    <a href="/salj" class="gen-link" style="margin-left:16px;">&#x2B; sälj din domän</a>
     <div id="result"></div>
     <div id="analys-box" style="display:none;"></div>
 
@@ -584,8 +646,8 @@ HTML = '''
 
     <footer>
     <div class="token-bar">
-        <span id="token-visning">tokens kvar: <strong id="token-antal">—</strong></span>
-        <button class="token-kop" onclick="oppnaModal()">Köp fler</button>
+        <span id="token-visning" style="color:var(--text-tertiar);font-size:13px;">Behöver du fler tokens?</span>
+        <button class="token-kop" onclick="oppnaModal()">Köp tokens</button>
     </div>
     </footer>
 
@@ -593,27 +655,27 @@ HTML = '''
         <div class="modal">
             <button class="modal-stang" onclick="stangModalDirekt()">&#x2715;</button>
             <h2>Köp tokens</h2>
-            <p class="modal-sub">Tokens används för namnanalys och namnförslag.</p>
+            <p class="modal-sub">Tokens används för AI-funktioner. Grundkoll är alltid gratis.</p>
             <div class="paket-rad">
                 <div class="paket-info">
-                    <div class="paket-namn">Bas</div>
-                    <div class="paket-tokens">50 tokens</div>
+                    <div class="paket-namn">Bas &mdash; 19 kr</div>
+                    <div class="paket-tokens">50 tokens &nbsp;·&nbsp; 25 analyser eller 16 genereringar</div>
                 </div>
-                <button class="paket-kop" onclick="location.href='/kop/bas'">19 kr</button>
+                <button class="paket-kop" onclick="location.href='/kop/bas'">Köp</button>
             </div>
             <div class="paket-rad">
                 <div class="paket-info">
-                    <div class="paket-namn">Standard</div>
-                    <div class="paket-tokens">200 tokens</div>
+                    <div class="paket-namn">Standard &mdash; 49 kr</div>
+                    <div class="paket-tokens">200 tokens &nbsp;·&nbsp; 100 analyser eller 66 genereringar</div>
                 </div>
-                <button class="paket-kop" onclick="location.href='/kop/standard'">49 kr</button>
+                <button class="paket-kop" onclick="location.href='/kop/standard'">Köp</button>
             </div>
             <div class="paket-rad">
                 <div class="paket-info">
-                    <div class="paket-namn">Pro</div>
-                    <div class="paket-tokens">500 tokens</div>
+                    <div class="paket-namn">Pro &mdash; 99 kr</div>
+                    <div class="paket-tokens">500 tokens &nbsp;·&nbsp; 250 analyser eller 166 genereringar</div>
                 </div>
-                <button class="paket-kop" onclick="location.href='/kop/pro'">99 kr</button>
+                <button class="paket-kop" onclick="location.href='/kop/pro'">Köp</button>
             </div>
         </div>
     </div>
@@ -644,18 +706,21 @@ HTML = '''
         }
 
         async function slumpa() {
+            console.log('[slumpa] anropar /slumpa?json=1');
             try {
                 var r = await fetch('/slumpa?json=1');
                 var d = await r.json();
+                console.log('[slumpa] svar:', d);
                 if (d.namn) {
                     document.getElementById('namn').value = d.namn;
                     kolla();
                 }
-            } catch(e) {}
+            } catch(e) { console.error('[slumpa] fel:', e); }
         }
 
         async function kolla() {
             var namn = document.getElementById('namn').value.trim();
+            console.log('[kolla] namn=' + namn);
             if (!namn) return;
             document.getElementById('result').innerHTML = '<p class="laddar" style="font-size:14px;padding-top:16px;">kollar...</p>';
             document.getElementById('analys-box').style.display = 'none';
@@ -670,8 +735,8 @@ HTML = '''
             if (data.bolag_liknande && data.bolag_liknande.length > 0) {
                 html += '<div class="rad"><span>liknande namn</span><span class="liknande">' + data.bolag_liknande.join(', ') + '</span></div>';
             }
-            html += rad('.se-domän', data.se, slug + '.se');
-            html += rad('.com-domän', data.com, slug + '.com');
+            html += rad('.se-domän', data.se, slug + '.se', data.se_market);
+            html += rad('.com-domän', data.com, slug + '.com', data.com_market);
             html += '<div id="wb-se" class="rad"><span>wayback .se</span><span class="laddar">kollar...</span></div>';
             html += '<div id="wb-com" class="rad"><span>wayback .com</span><span class="laddar">kollar...</span></div>';
             html += '<div id="safebrowsing" class="rad"><span>sucuri sitecheck</span><span class="laddar">kollar...</span></div>';
@@ -694,8 +759,11 @@ HTML = '''
             document.getElementById('result').innerHTML = html;
 
             var box = document.getElementById('analys-box');
-            box.innerHTML = '<p class="mjuka-label">MJUKA VÄRLDEN</p><p class="mjuka-text laddar">kollar...</p>';
-            box.style.display = 'block';
+            box.innerHTML =
+                '<button class="mjuka-knapp" onclick="triggerAnalys()">' +
+                '&#x2756; Analysera med Mjuka världen</button>' +
+                '<span class="token-kostnad">2 tokens</span>';
+            box.style.display = 'flex';
 
             fetchWayback(slug);
             fetchSafeBrowsing(slug);
@@ -703,7 +771,17 @@ HTML = '''
             fetchWipo(namn);
             fetchTmview(namn);
             fetchPrv(namn);
-            fetchAnalys(namn);
+        }
+
+        async function triggerAnalys() {
+            var namn = document.getElementById('namn').value.trim();
+            console.log('[triggerAnalys] namn=' + namn);
+            if (!namn) return;
+            var box = document.getElementById('analys-box');
+            box.classList.add('expanded');
+            box.innerHTML = '<p class="mjuka-label">MJUKA VÄRLDEN</p><p class="mjuka-text laddar">kollar...</p>';
+            box.style.display = 'block';
+            await fetchAnalys(namn);
         }
 
         async function fetchWayback(slug) {
@@ -842,15 +920,22 @@ HTML = '''
 
         async function fetchAnalys(namn) {
             var box = document.getElementById('analys-box');
+            box.classList.add('expanded');
             try {
                 var ar = await fetch('/analys?namn=' + encodeURIComponent(namn));
                 var ad = await ar.json();
                 if (ar.status === 402 || (ad.error && ad.error.toLowerCase().includes('token'))) {
-                    box.style.display = 'none';
+                    box.classList.remove('expanded');
+                    box.innerHTML =
+                        '<button class="mjuka-knapp" onclick="triggerAnalys()">' +
+                        '&#x2756; Analysera med Mjuka världen</button>' +
+                        '<span class="token-kostnad">2 tokens</span>';
+                    box.style.display = 'flex';
                     oppnaModal();
                     return;
                 }
                 box.innerHTML = '<p class="mjuka-label">MJUKA VÄRLDEN</p><div class="mjuka-text">' + renderMarkdown(ad.analys || '') + '</div>';
+                hämtaTokens();
             } catch(e) {
                 box.innerHTML = '<p class="mjuka-label">MJUKA VÄRLDEN</p><p class="mjuka-text">kunde inte hämta analys.</p>';
             }
@@ -913,12 +998,16 @@ HTML = '''
             return '<div class="rad top"><span>bolagsnamn (bolagsverket)</span><div class="match-lista">' + rader.join('') + '</div></div>';
         }
 
-        function rad(label, ledig, doman) {
+        function rad(label, ledig, doman, market) {
             if (ledig === null) {
                 return '<div class="rad"><span>' + label + '</span><span class="laddar">okänd</span></div>';
             }
             if (!ledig) {
-                return '<div class="rad"><span>' + label + '</span><span class="fel">upptaget</span></div>';
+                var extra = '';
+                if (market && market.pris) {
+                    extra = '<div class="market-rad">&#x1F4B0; Till salu för <strong>' + market.pris.toLocaleString('sv-SE') + ' kr</strong> &mdash; <a href="/kop-begagnad/' + encodeURIComponent(doman) + '" class="market-link">Köp direkt →</a></div>';
+                }
+                return '<div class="rad"><span>' + label + '</span><span class="fel">upptaget</span></div>' + extra;
             }
             var boxId = 'reg-' + doman.replace('.', '-');
             return '<div class="rad"><span>' + label + '</span>' +
@@ -937,7 +1026,10 @@ HTML = '''
         }
 
         function oppnaModal() {
-            document.getElementById('modal-overlay').classList.add('open');
+            console.log('[oppnaModal] öppnar modal');
+            var el = document.getElementById('modal-overlay');
+            if (!el) { console.error('[oppnaModal] #modal-overlay hittades inte!'); return; }
+            el.classList.add('open');
         }
 
         function stangModalDirekt() {
@@ -1072,12 +1164,29 @@ def kolla():
     except Exception:
         pass
 
+    def _market_kolla(doman):
+        try:
+            con = sqlite3.connect(DB)
+            row = con.execute(
+                "SELECT pris FROM domanmarknaden WHERE doman=? AND status='aktiv'",
+                (doman,)
+            ).fetchone()
+            con.close()
+            return {'pris': row[0]} if row else None
+        except Exception:
+            return None
+
+    se_market  = _market_kolla(f'{slug}.se')  if se  is False else None
+    com_market = _market_kolla(f'{slug}.com') if com is False else None
+
     return jsonify({
         'bolag': bolag['ledig'],
         'bolag_matchande': bolag['matchande'],
         'bolag_liknande': bolag['liknande'],
         'se': se,
         'com': com,
+        'se_market': se_market,
+        'com_market': com_market,
     })
 
 @app.route('/wayback')
@@ -1643,6 +1752,7 @@ GENERATOR_HTML = '''<!DOCTYPE html>
     </div>
 
     <button class="gen" onclick="generera(false)">Generera förslag</button>
+    <span style="font-size:12px;color:#a0a0a0;margin-left:10px;">3 tokens</span>
     <div id="resultat"></div>
 
     <div class="email-modal-overlay" id="email-modal-overlay">
@@ -2056,17 +2166,20 @@ FAVORITER_HTML = '''<!DOCTYPE html>
         .kolla-lank:hover { color: var(--svart); }
         .ta-bort-btn { border: none; background: none; font-size: 19px; color: var(--text-tertiar); cursor: pointer; padding: 2px 4px; line-height: 1; }
         .ta-bort-btn:hover { color: var(--rod); }
-        .gen-fav-btn {
-            margin-top: 28px; width: 100%; height: 48px;
-            background: var(--svart); color: #fff; border: none;
-            border-radius: 8px; font-size: 14px; font-family: \'Inter\', sans-serif;
-            font-weight: 500; cursor: pointer;
-        }
-        .gen-fav-btn:hover { background: #1a1a1a; }
-        .gen-fav-btn:disabled { background: var(--text-tertiar); cursor: not-allowed; }
         .sektion-rubrik { font-size: 11px; letter-spacing: 0.12em; color: var(--text-tertiar); margin: 52px 0 20px; font-weight: 400; }
         .radar-wrapper { width: 100%; max-width: 380px; margin: 0 auto; }
         .laddar { font-size: 14px; color: var(--text-tertiar); }
+        .gen-inline-btn { margin-top: 4px; height: 44px; padding: 0 22px; background: var(--svart); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-family: \'Inter\', sans-serif; font-weight: 500; cursor: pointer; }
+        .gen-inline-btn:hover { background: #1a1a1a; }
+        .gen-inline-btn:disabled { background: var(--text-tertiar); cursor: not-allowed; }
+        .forslag-lista { margin-top: 20px; }
+        .forslag-rad { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 0.5px solid var(--border); font-size: 15px; font-weight: 500; }
+        .forslag-actions { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+        .hjart-btn { border: none; background: none; font-size: 18px; color: var(--text-tertiar); cursor: pointer; padding: 2px 4px; line-height: 1; transition: color 0.15s; }
+        .hjart-btn:hover { color: #e11d48; }
+        .hjart-btn.sparat { color: #e11d48; }
+        .kolla-lnk { font-size: 13px; color: var(--text-tertiar); text-decoration: none; white-space: nowrap; }
+        .kolla-lnk:hover { color: var(--svart); }
         @media (max-width: 600px) {
             body { padding: 0 16px; margin-top: 40px; }
             h1 { font-size: 28px; }
@@ -2087,10 +2200,15 @@ FAVORITER_HTML = '''<!DOCTYPE html>
 
     <div id="namn-lista"><p class="laddar">laddar...</p></div>
 
-    <button class="gen-fav-btn" id="gen-fav-btn" disabled onclick="genereraFranFavoriter()">Generera baserat på favoriter</button>
-
     <p class="sektion-rubrik">NAMNPROFIL</p>
     <div id="radar-box"><p class="laddar">analyserar...</p></div>
+
+    <p class="sektion-rubrik">FÖRSLAG BASERADE PÅ DINA FAVORITER</p>
+    <div>
+        <button class="gen-inline-btn" id="gen-inline-btn" onclick="genereraInline()">Generera förslag</button>
+        <span style="font-size:12px;color:var(--text-tertiar);margin-left:10px;">3 tokens</span>
+    </div>
+    <div id="forslag-lista" class="forslag-lista"></div>
 
     <script>
         var sparade = [];
@@ -2116,11 +2234,9 @@ FAVORITER_HTML = '''<!DOCTYPE html>
             var lista = document.getElementById(\'namn-lista\');
             if (sparade.length === 0) {
                 lista.innerHTML = \'<p class="tom-text">Du har inga sparade namn än. Gå till <a href="/generator">Namnkonfiguratorn</a> och tryck ♡ på namn du gillar.</p>\';
-                document.getElementById(\'gen-fav-btn\').disabled = true;
                 return;
             }
-            document.getElementById(\'gen-fav-btn\').disabled = false;
-            lista.innerHTML = sparade.map(function(n) {
+            lista.innerHTML = sparade.map(function(n, i) {
                 var meta = [n.bransch, n.typ].filter(Boolean).join(\' · \');
                 var datum = n.skapad ? n.skapad.split(\' \')[0] : \'\';
                 var metaStr = [meta, datum].filter(Boolean).join(\' · \');
@@ -2130,8 +2246,8 @@ FAVORITER_HTML = '''<!DOCTYPE html>
                         (metaStr ? \'<div class="namn-meta">\' + metaStr + \'</div>\' : \'\') +
                     \'</div>\' +
                     \'<div class="namn-actions">\' +
-                        \'<a class="kolla-lank" href="/\' + \'?namn=\' + encodeURIComponent(n.namn) + \'" target="_blank">Kolla →</a>\' +
-                        \'<button class="ta-bort-btn" onclick="taBort(\\\'\' + n.namn.replace(/\\\'/g, "\\\\\\'") + \'\\\', this)" title="Ta bort">×</button>\' +
+                        \'<a class="kolla-lank" href="/?namn=\' + encodeURIComponent(n.namn) + \'" target="_blank">Kolla →</a>\' +
+                        \'<button class="ta-bort-btn" data-idx="\' + i + \'" onclick="taBort(sparade[this.dataset.idx].namn, this)" title="Ta bort">×</button>\' +
                     \'</div>\' +
                 \'</div>\';
             }).join(\'\');
@@ -2152,17 +2268,68 @@ FAVORITER_HTML = '''<!DOCTYPE html>
             } catch(e) { btn.disabled = false; }
         }
 
-        function genereraFranFavoriter() {
-            var namn = sparade.map(function(n) { return n.namn; }).join(\',\');
-            window.location.href = \'/generator?favoriter=\' + encodeURIComponent(namn);
+        async function genereraInline() {
+            if (sparade.length === 0) return;
+            var btn = document.getElementById(\'gen-inline-btn\');
+            var lista = document.getElementById(\'forslag-lista\');
+            btn.disabled = true;
+            btn.textContent = \'genererar...\';
+            lista.innerHTML = \'<p class="laddar" style="padding:12px 0;">Claude analyserar dina favoriter...</p>\';
+            try {
+                var r = await fetch(\'/generera-favoriter\');
+                var d = await r.json();
+                if (r.status === 402 || (d.error && d.error.toLowerCase().includes(\'token\'))) {
+                    lista.innerHTML = \'<p style="font-size:13px;color:var(--text-tertiar);">Du behöver tokens. <a href="/kop/bas" style="color:#0a0a0a;">Köp 50 tokens för 19 kr →</a></p>\';
+                } else if (d.error) {
+                    lista.innerHTML = \'<p style="font-size:13px;color:#dc2626;">\' + d.error + \'</p>\';
+                } else {
+                    lista.innerHTML = (d.namn || []).map(function(n) {
+                        return \'<div class="forslag-rad">\' +
+                            \'<span>\' + n + \'</span>\' +
+                            \'<div class="forslag-actions">\' +
+                                \'<button class="hjart-btn" data-namn="\' + n.replace(/"/g, \'&quot;\') + \'" onclick="sparaNamnInline(this)" title="Spara">&#x2661;</button>\' +
+                                \'<a class="kolla-lnk" href="/?namn=\' + encodeURIComponent(n) + \'" target="_blank">Kolla →</a>\' +
+                            \'</div>\' +
+                        \'</div>\';
+                    }).join(\'\');
+                }
+            } catch(e) {
+                lista.innerHTML = \'<p style="font-size:13px;color:#dc2626;">Nätverksfel, försök igen.</p>\';
+            }
+            btn.disabled = false;
+            btn.textContent = \'Generera förslag\';
+        }
+
+        async function sparaNamnInline(btn) {
+            var namn = btn.dataset.namn;
+            btn.disabled = true;
+            try {
+                var r = await fetch(\'/spara-session\', {
+                    method: \'POST\',
+                    headers: {\'Content-Type\': \'application/json\'},
+                    body: JSON.stringify({namn: namn})
+                });
+                var d = await r.json();
+                if (d.ok) {
+                    btn.innerHTML = \'&#x2665;\';
+                    btn.classList.add(\'sparat\');
+                    sparade.push({namn: namn, bransch: \'\', typ: \'\', skapad: \'\'});
+                } else {
+                    btn.disabled = false;
+                }
+            } catch(e) { btn.disabled = false; }
         }
 
         async function laddaRadar() {
             var box = document.getElementById(\'radar-box\');
-            box.innerHTML = \'<p class="laddar">analyserar namnprofil...</p>\';
+            box.innerHTML = \'<p class="laddar">analyserar namnprofil... <span style="font-size:11px;color:#a0a0a0;">(2 tokens)</span></p>\';
             try {
                 var r = await fetch(\'/analysera_favoriter\');
                 var d = await r.json();
+                if (r.status === 402 || (d.error && d.error.toLowerCase().includes(\'token\'))) {
+                    box.innerHTML = \'<p style="font-size:13px;color:var(--text-tertiar);">Du behöver tokens för namnprofilen. <a href="/kop/bas" style="color:#0a0a0a;">Köp 50 tokens för 19 kr →</a></p>\';
+                    return;
+                }
                 if (d.error) {
                     box.innerHTML = \'<p style="font-size:13px;color:var(--text-tertiar);">\' + d.error + \'</p>\';
                     return;
@@ -2217,6 +2384,69 @@ FAVORITER_HTML = '''<!DOCTYPE html>
 @app.route('/favoriter')
 def favoriter():
     return render_template_string(FAVORITER_HTML)
+
+
+@app.route('/generera-favoriter')
+@limiter.limit('10 per minute')
+def generera_favoriter():
+    sid = get_session_id()
+    if not deduct_tokens(sid, 3):
+        return jsonify({'error': 'Du behöver fler tokens'}), 402
+    con = sqlite3.connect(DB)
+    rows = con.execute(
+        'SELECT namn FROM sparade_namn WHERE email = ? ORDER BY skapad DESC LIMIT 20',
+        (sid,)
+    ).fetchall()
+    con.close()
+    if not rows:
+        return jsonify({'error': 'Inga sparade namn att basera på'}), 400
+    namn_lista = [r[0] for r in rows]
+    try:
+        import json as _json, re as _re
+        client = anthropic.Anthropic(api_key=os.environ.get('ANTHROPIC_API_KEY'))
+        message = client.messages.create(
+            model='claude-sonnet-4-6',
+            max_tokens=200,
+            messages=[{'role': 'user', 'content': (
+                f'Du är en expert på att skapa företagsnamn. '
+                f'Användaren har sparat dessa namn som favoriter: {", ".join(namn_lista)}. '
+                f'Analysera vad de har gemensamt i stil, klang och känsla — '
+                f'och generera exakt 5 genuint nya företagsnamn i samma anda men olika varandra. '
+                f'Svara ENDAST med en JSON-array med exakt 5 strängar, inga förklaringar: '
+                f'["Namn1", "Namn2", "Namn3", "Namn4", "Namn5"]'
+            )}]
+        )
+        raw = message.content[0].text.strip()
+        match = _re.search(r'\[.*?\]', raw, _re.DOTALL)
+        if not match:
+            return jsonify({'error': 'Claude svarade i oväntat format'}), 500
+        namn = _json.loads(match.group())
+        return jsonify({'namn': namn[:5]})
+    except Exception as e:
+        print(f'[GENERERA-FAVORITER] fel: {e}', flush=True)
+        return jsonify({'error': 'Kunde inte generera förslag, försök igen.'}), 500
+
+
+@app.route('/spara-session', methods=['POST'])
+def spara_session():
+    sid = get_session_id()
+    body = request.get_json() or {}
+    namn = _sanera_text(body.get('namn') or '')
+    if not namn:
+        return jsonify({'ok': False, 'error': 'Namn saknas'})
+    try:
+        con = sqlite3.connect(DB)
+        con.execute(
+            'INSERT INTO sparade_namn (email, namn, bransch, typ) VALUES (?, ?, ?, ?)',
+            (sid, namn, '', '')
+        )
+        con.commit()
+        con.close()
+    except Exception as e:
+        print(f'[SPARA-SESSION] fel: {e}', flush=True)
+        return jsonify({'ok': False, 'error': 'Kunde inte spara'})
+    return jsonify({'ok': True})
+
 
 @app.route('/generera')
 def generera():
@@ -2856,6 +3086,8 @@ def tack_doman():
 @app.route('/analysera_favoriter')
 def analysera_favoriter():
     sid = get_session_id()
+    if not deduct_tokens(sid, 2):
+        return jsonify({'error': 'Du behöver fler tokens'}), 402
     con = sqlite3.connect(DB)
     rows = con.execute(
         'SELECT namn FROM sparade_namn WHERE email = ? ORDER BY skapad',
@@ -3073,6 +3305,7 @@ DOMANMARKNADEN_HTML = '''<!DOCTYPE html>
         <div class="est-rad">
             <input class="est-input" type="text" id="est-input" placeholder="mittforetag.se" autocomplete="off" />
             <button class="est-btn" id="est-btn" onclick="estimera()">Estimera →</button>
+            <span style="font-size:12px;color:#a0a0a0;white-space:nowrap;">1 token</span>
         </div>
         <div id="est-resultat"></div>
     </div>
@@ -3093,7 +3326,9 @@ DOMANMARKNADEN_HTML = '''<!DOCTYPE html>
             try {
                 var r = await fetch(\'/estimera-doman?doman=\' + encodeURIComponent(doman));
                 var d = await r.json();
-                if (d.error) {
+                if (r.status === 402 || (d.error && d.error.toLowerCase().includes(\'token\'))) {
+                    res.innerHTML = \'<p style="font-size:13px;color:#6b6b6b;">Du behöver tokens för att estimera. <a href="/kop/bas" style="color:#0a0a0a;border-bottom:0.5px solid rgba(0,0,0,0.2);">Köp 50 tokens för 19 kr →</a></p>\';
+                } else if (d.error) {
                     res.innerHTML = \'<p style="color:#dc2626;font-size:13px;">\' + d.error + \'</p>\';
                 } else {
                     res.innerHTML = \'<div class="est-varde">\' + d.estimat + \'</div><p>\' + d.motivering + \'</p>\';
@@ -3127,6 +3362,9 @@ def estimera_doman():
     doman = _sanera_text(request.args.get('doman', '').strip().lower(), max_len=100)
     if not doman or '.' not in doman:
         return jsonify({'error': 'Ange en giltig domän, t.ex. mittforetag.se'})
+    sid = get_session_id()
+    if not deduct_tokens(sid, 1):
+        return jsonify({'error': 'Du behöver fler tokens'}), 402
     delar = doman.rsplit('.', 1)
     namn_del = delar[0]
     tld = delar[1] if len(delar) > 1 else ''
@@ -3439,6 +3677,535 @@ def registrera_doman_se():
 def vad_ar_ett_varumarke():
     return VAD_AR_VARUMARKE_HTML
 
+_MARKETPLACE_CSS = _SIDA_CSS + '''
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 12px; letter-spacing: 0.08em; color: #a0a0a0; margin-bottom: 6px; font-weight: 400; }
+        .form-input { width: 100%; height: 44px; padding: 0 12px; font-size: 14px; font-family: 'Inter', sans-serif; border: 0.5px solid rgba(0,0,0,0.15); border-radius: 8px; outline: none; color: #0a0a0a; background: #fff; }
+        .form-input:focus { border-color: rgba(0,0,0,0.3); }
+        textarea.form-input { height: 88px; padding: 10px 12px; resize: vertical; }
+        .submit-btn { height: 48px; padding: 0 28px; background: #0a0a0a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; width: 100%; }
+        .submit-btn:hover { background: #1a1a1a; }
+        .info-lista { list-style: none; padding: 0; margin: 24px 0 0; }
+        .info-lista li { font-size: 13px; color: #6b6b6b; padding: 7px 0; border-bottom: 0.5px solid rgba(0,0,0,0.06); display: flex; align-items: center; gap: 10px; }
+        .info-lista li::before { content: "–"; color: #a0a0a0; }
+        .fel-msg { color: #dc2626; font-size: 13px; margin-top: 12px; }
+        .ok-msg { color: #16a34a; font-size: 14px; margin-top: 16px; padding: 14px; background: #f0fdf4; border-radius: 8px; }
+        .sok-rad { display: flex; gap: 8px; margin-bottom: 24px; }
+        .sok-input { flex: 1; height: 40px; padding: 0 12px; font-size: 14px; font-family: 'Inter', sans-serif; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 8px; outline: none; }
+        .sort-select { height: 40px; padding: 0 10px; font-size: 13px; font-family: 'Inter', sans-serif; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 8px; outline: none; background: #fff; cursor: pointer; }
+        .kop-btn { display: inline-block; padding: 5px 14px; background: #0a0a0a; color: #fff; border-radius: 999px; font-size: 12px; font-family: 'Inter', sans-serif; font-weight: 500; text-decoration: none; white-space: nowrap; }
+        .kop-btn:hover { background: #1a1a1a; }
+        .tom-msg { font-size: 14px; color: #a0a0a0; padding: 24px 0; text-align: center; }
+        .paginering { display: flex; gap: 8px; margin-top: 24px; justify-content: center; }
+        .sid-btn { padding: 6px 14px; border: 0.5px solid rgba(0,0,0,0.15); border-radius: 999px; font-size: 13px; font-family: 'Inter', sans-serif; background: none; cursor: pointer; }
+        .sid-btn.aktiv { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+        .sid-btn:hover:not(.aktiv) { background: #f0f0f0; }
+        .besk-cell { font-size: 12px; color: #6b6b6b; }
+'''
+
+SALJ_HTML = '''<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sälj din domän — Namnverket</title>
+    <meta name="description" content="Lista din domän till salu på Namnverket. Gratis att lista, 10% provision vid försäljning.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://namnverket.se/salj">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>''' + _MARKETPLACE_CSS + '''</style>
+</head>
+<body>
+    <header><p class="logo">NAMNVERKET</p></header>
+    <main>
+    <a href="/" class="back">← tillbaka</a>
+    <h1>Sälj din domän</h1>
+    <p class="sub">Lista din domän på marknadsplatsen. Köpare hittar den direkt när de söker på Namnverket.</p>
+
+    <div id="formular">
+        <div class="form-group">
+            <label>DOMÄNNAMN</label>
+            <input type="text" id="doman" class="form-input" placeholder="t.ex. mittforetag.se" autocomplete="off" />
+        </div>
+        <div class="form-group">
+            <label>DITT PRIS (SEK)</label>
+            <input type="number" id="pris" class="form-input" placeholder="t.ex. 5000" min="100" />
+        </div>
+        <div class="form-group">
+            <label>DIN E-POST</label>
+            <input type="email" id="email" class="form-input" placeholder="du@exempel.se" />
+        </div>
+        <div class="form-group">
+            <label>BESKRIVNING <span style="font-size:11px;color:#c0c0c0;">(valfri)</span></label>
+            <textarea id="beskrivning" class="form-input" placeholder="Varför är detta ett bra namn?"></textarea>
+        </div>
+        <button class="submit-btn" onclick="listaDoMan()">Lista domän →</button>
+        <p id="fel" class="fel-msg" style="display:none;"></p>
+        <p id="ok" class="ok-msg" style="display:none;"></p>
+    </div>
+
+    <div id="verifiering-box" style="display:none;">
+        <p style="font-size:15px;font-weight:500;margin-bottom:8px;">Din domän behöver verifieras innan den listas.</p>
+        <p style="font-size:14px;color:#6b6b6b;margin-bottom:20px;">Lägg till följande TXT-post i din DNS:</p>
+        <div style="background:#f9f9f8;border-radius:8px;padding:16px 18px;margin-bottom:20px;font-size:13px;">
+            <div><span style="color:#a0a0a0;">Namn:</span> @ (eller <span id="ver-doman"></span>)</div>
+            <div style="margin-top:6px;"><span style="color:#a0a0a0;">Typ:</span> TXT</div>
+            <div style="margin-top:6px;"><span style="color:#a0a0a0;">Värde:</span> <code id="ver-kod" style="font-family:monospace;background:#efefef;padding:2px 6px;border-radius:4px;user-select:all;"></code></div>
+        </div>
+        <p style="font-size:13px;color:#a0a0a0;margin-bottom:20px;">När du lagt till posten (kan ta 5–60 min) — klicka Verifiera nedan.</p>
+        <button class="submit-btn" id="ver-btn" onclick="verifieraNu()">Verifiera nu →</button>
+        <p id="ver-msg" style="display:none;margin-top:12px;font-size:13px;"></p>
+    </div>
+
+    <ul class="info-lista">
+        <li>Vi tar 10% provision vid försäljning</li>
+        <li>Överlåtelse sker automatiskt via Openprovider</li>
+        <li>Gratis att lista — inga upfront-kostnader</li>
+    </ul>
+    </main>
+
+    <script>
+        var _pendingDoman = '';
+        var _pendingKod   = '';
+
+        async function listaDoMan() {
+            var doman = document.getElementById('doman').value.trim().toLowerCase();
+            var pris  = parseInt(document.getElementById('pris').value, 10);
+            var email = document.getElementById('email').value.trim();
+            var besk  = document.getElementById('beskrivning').value.trim();
+            var felEl = document.getElementById('fel');
+            felEl.style.display = 'none';
+            if (!doman || !doman.includes('.')) { felEl.textContent = 'Ange ett giltigt domännamn.'; felEl.style.display = 'block'; return; }
+            if (!pris || pris < 100)            { felEl.textContent = 'Priset måste vara minst 100 kr.'; felEl.style.display = 'block'; return; }
+            if (!email || !email.includes('@'))  { felEl.textContent = 'Ange en giltig e-postadress.'; felEl.style.display = 'block'; return; }
+            var btn = document.querySelector('.submit-btn');
+            btn.disabled = true; btn.textContent = 'sparar...';
+            try {
+                var r = await fetch('/salj', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({doman: doman, pris: pris, email: email, beskrivning: besk})
+                });
+                var d = await r.json();
+                if (d.ok && d.pending) {
+                    _pendingDoman = d.doman;
+                    _pendingKod   = d.verify_code;
+                    visaVerifiering(d.doman, d.verify_code);
+                } else {
+                    felEl.textContent = d.error || 'Något gick fel, försök igen.';
+                    felEl.style.display = 'block';
+                    btn.disabled = false; btn.textContent = 'Lista domän →';
+                }
+            } catch(e) {
+                felEl.textContent = 'Nätverksfel — försök igen.';
+                felEl.style.display = 'block';
+                btn.disabled = false; btn.textContent = 'Lista domän →';
+            }
+        }
+
+        function visaVerifiering(doman, kod) {
+            document.getElementById('formular').style.display = 'none';
+            document.querySelector('.info-lista').style.display = 'none';
+            var box = document.getElementById('verifiering-box');
+            box.style.display = 'block';
+            document.getElementById('ver-doman').textContent = doman;
+            document.getElementById('ver-kod').textContent = kod;
+        }
+
+        async function verifieraNu() {
+            var btn = document.getElementById('ver-btn');
+            var msg = document.getElementById('ver-msg');
+            btn.disabled = true; btn.textContent = 'kollar DNS...';
+            msg.style.display = 'none';
+            try {
+                var r = await fetch('/verifiera/' + encodeURIComponent(_pendingDoman));
+                var d = await r.json();
+                if (d.ok) {
+                    btn.style.display = 'none';
+                    msg.className = 'ok-msg';
+                    msg.textContent = '✓ ' + _pendingDoman + ' är nu verifierad och listad på Namnverket!';
+                    msg.style.display = 'block';
+                } else {
+                    msg.className = 'fel-msg';
+                    msg.textContent = d.error || 'Verifiering misslyckades.';
+                    msg.style.display = 'block';
+                    btn.disabled = false; btn.textContent = 'Verifiera nu →';
+                }
+            } catch(e) {
+                msg.className = 'fel-msg';
+                msg.textContent = 'Nätverksfel — försök igen.';
+                msg.style.display = 'block';
+                btn.disabled = false; btn.textContent = 'Verifiera nu →';
+            }
+        }
+    </script>
+</body>
+</html>
+'''
+
+MARKNADSPLATS_HTML = '''<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Domänmarknadsplats — Namnverket</title>
+    <meta name="description" content="Köp och sälj domäner på Namnverkets marknadsplats. Hitta lediga domäner till salu från privatpersoner och företag.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://namnverket.se/marknadsplats">
+    <link rel="alternate" hreflang="sv" href="https://namnverket.se/marknadsplats" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>''' + _MARKETPLACE_CSS + '''</style>
+</head>
+<body>
+    <header><p class="logo">NAMNVERKET</p></header>
+    <main>
+    <a href="/" class="back">← tillbaka</a>
+    <h1>Domänmarknadsplats</h1>
+    <p class="sub">Domäner till salu — listade av privatpersoner och företag.</p>
+
+    <div class="sok-rad">
+        <input type="text" id="sok" class="sok-input" placeholder="sök domän..." oninput="filteraOchVisa()" />
+        <select id="sort" class="sort-select" onchange="filteraOchVisa()">
+            <option value="ny">nyast</option>
+            <option value="billigast">billigast</option>
+            <option value="dyrast">dyrast</option>
+        </select>
+    </div>
+
+    <table>
+        <thead><tr><th>DOMÄN</th><th>PRIS</th><th>BESKRIVNING</th><th></th></tr></thead>
+        <tbody id="tabell-body"></tbody>
+    </table>
+    <p id="tom-msg" class="tom-msg" style="display:none;">Inga domäner matchar sökningen.</p>
+    <div class="paginering" id="paginering"></div>
+
+    <p style="margin-top:40px;font-size:13px;color:#a0a0a0;">
+        Har du en domän att sälja? <a href="/salj" style="color:#0a0a0a;border-bottom:0.5px solid rgba(0,0,0,0.2);">Lista den gratis →</a>
+    </p>
+    </main>
+
+    <script>
+        var alla = {{ domaner | tojson }};
+        var PER_SIDA = 20;
+        var sida = 1;
+
+        function filteraOchVisa() {
+            sida = 1;
+            visa();
+        }
+
+        function visa() {
+            var sok   = document.getElementById('sok').value.trim().toLowerCase();
+            var sort  = document.getElementById('sort').value;
+            var lista = alla.filter(function(d) {
+                return !sok || d.doman.toLowerCase().includes(sok);
+            });
+            if (sort === 'billigast') lista.sort(function(a, b) { return a.pris - b.pris; });
+            else if (sort === 'dyrast') lista.sort(function(a, b) { return b.pris - a.pris; });
+
+            var totalt = lista.length;
+            var start  = (sida - 1) * PER_SIDA;
+            var sida_items = lista.slice(start, start + PER_SIDA);
+
+            var tbody = document.getElementById('tabell-body');
+            if (sida_items.length === 0) {
+                tbody.innerHTML = '';
+                document.getElementById('tom-msg').style.display = 'block';
+            } else {
+                document.getElementById('tom-msg').style.display = 'none';
+                tbody.innerHTML = sida_items.map(function(d) {
+                    var besk = d.beskrivning ? '<span class="besk-cell">' + d.beskrivning.substring(0, 60) + (d.beskrivning.length > 60 ? '…' : '') + '</span>' : '';
+                    var badge = '<span style="display:inline-block;font-size:11px;color:#1a8a3a;background:#eaf6ee;border-radius:99px;padding:2px 8px;margin-left:6px;font-weight:500;">✓ Verifierad</span>';
+                    return '<tr>' +
+                        '<td>' + d.doman + badge + '</td>' +
+                        '<td class="pris-cell">' + d.pris.toLocaleString('sv-SE') + ' kr</td>' +
+                        '<td>' + besk + '</td>' +
+                        '<td><a class="kop-btn" href="/kop-begagnad/' + encodeURIComponent(d.doman) + '">Köp →</a></td>' +
+                        '</tr>';
+                }).join('');
+            }
+
+            var sidor = Math.ceil(totalt / PER_SIDA);
+            var pag = document.getElementById('paginering');
+            if (sidor <= 1) { pag.innerHTML = ''; return; }
+            pag.innerHTML = Array.from({length: sidor}, function(_, i) {
+                return '<button class="sid-btn' + (i + 1 === sida ? ' aktiv' : '') + '" onclick="bytSida(' + (i + 1) + ')">' + (i + 1) + '</button>';
+            }).join('');
+        }
+
+        function bytSida(n) { sida = n; visa(); window.scrollTo(0, 0); }
+        visa();
+    </script>
+</body>
+</html>
+'''
+
+TACK_BEGAGNAD_HTML = '''<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if ok %}{{ doman }} är din{% else %}Betalning mottagen{% endif %} — Namnverket</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; max-width: 560px; margin: 120px auto; padding: 0 24px; color: #0a0a0a; text-align: center; }
+        .logo { font-size: 11px; letter-spacing: 0.15em; color: #a0a0a0; margin-bottom: 3rem; }
+        h1 { font-size: 32px; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 12px; }
+        p { font-size: 15px; color: #6b6b6b; margin-bottom: 8px; }
+        .doman-namn { font-weight: 500; color: #0a0a0a; }
+        a { display: inline-block; margin-top: 24px; font-size: 14px; color: #0a0a0a; text-decoration: none; border-bottom: 0.5px solid rgba(0,0,0,0.2); padding-bottom: 2px; }
+        a:hover { border-color: #0a0a0a; }
+        .info { font-size: 13px; color: #a0a0a0; margin-top: 20px; }
+        @media (max-width: 600px) { body { padding: 0 16px; margin-top: 40px; } h1 { font-size: 26px; } }
+    </style>
+</head>
+<body>
+    <header><p class="logo">NAMNVERKET</p></header>
+    <main>
+    {% if ok %}
+    <h1>&#x2714;&#xFE0F; {{ doman }} är din!</h1>
+    <p>Betalningen är bekräftad. Överlåtelsen av <span class="doman-namn">{{ doman }}</span> påbörjas nu.</p>
+    <p class="info">Du får en bekräftelse till {{ email }} när överlåtelsen är klar. Det tar normalt 1–24 timmar.</p>
+    {% else %}
+    <h1>Betalning mottagen</h1>
+    <p>Vi hanterar överlåtelsen av <span class="doman-namn">{{ doman }}</span> och hör av oss till dig.</p>
+    {% if fel %}<p class="info" style="color:#dc2626;">{{ fel }}</p>{% endif %}
+    {% endif %}
+    <a href="/">Tillbaka till sökningen →</a>
+    </main>
+</body>
+</html>
+'''
+
+@app.route('/salj', methods=['GET', 'POST'])
+def salj():
+    if request.method == 'GET':
+        return render_template_string(SALJ_HTML)
+
+    body = request.get_json() or {}
+    doman    = _sanera_text(body.get('doman', '').strip().lower(), max_len=253)
+    pris_raw = body.get('pris')
+    email    = _sanera_text(body.get('email', '').strip(), max_len=200)
+    besk     = _sanera_text(body.get('beskrivning', ''), max_len=500)
+
+    if not _valider_doman(doman):
+        return jsonify({'ok': False, 'error': 'Ogiltigt domännamn.'})
+    try:
+        pris = int(pris_raw)
+        if pris < 100:
+            raise ValueError
+    except (TypeError, ValueError):
+        return jsonify({'ok': False, 'error': 'Priset måste vara minst 100 kr.'})
+    if not _valider_email(email):
+        return jsonify({'ok': False, 'error': 'Ogiltig e-postadress.'})
+
+    verify_code = f"namnverket-verify={secrets.token_hex(16)}"
+    print(f'[SÄLJ] doman={doman!r} pris={pris} email={email!r} kod={verify_code}', flush=True)
+    try:
+        con = sqlite3.connect(DB)
+        # Ta bort ev. gammal pending för samma domän så säljaren kan försöka igen
+        con.execute("DELETE FROM pending_listings WHERE doman=?", (doman,))
+        con.execute(
+            "INSERT INTO pending_listings (doman, pris, saljare_email, beskrivning, verify_code) VALUES (?,?,?,?,?)",
+            (doman, pris, email, besk, verify_code)
+        )
+        con.commit()
+        con.close()
+    except Exception as e:
+        print(f'[SÄLJ] DB-fel: {e}', flush=True)
+        return jsonify({'ok': False, 'error': 'Kunde inte spara, försök igen.'})
+
+    return jsonify({'ok': True, 'pending': True, 'doman': doman, 'verify_code': verify_code})
+
+
+@app.route('/verifiera/<path:doman>')
+@limiter.limit('10 per minute')
+def verifiera(doman):
+    doman = doman.strip().lower()
+    if not _valider_doman(doman):
+        return jsonify({'ok': False, 'error': 'Ogiltig domän'}), 400
+
+    con = sqlite3.connect(DB)
+    row = con.execute(
+        "SELECT pris, saljare_email, beskrivning, verify_code FROM pending_listings WHERE doman=?",
+        (doman,)
+    ).fetchone()
+    con.close()
+
+    if not row:
+        return jsonify({'ok': False, 'error': 'Ingen väntande listning hittades för den här domänen.'})
+
+    pris, email, besk, verify_code = row
+
+    if not _kolla_dns_verifiering(doman, verify_code):
+        return jsonify({
+            'ok': False,
+            'pending': True,
+            'error': 'TXT-posten hittades inte än. DNS-ändringar kan ta upp till 60 minuter. Försök igen snart.'
+        })
+
+    # DNS OK — flytta till domanmarknaden
+    try:
+        con = sqlite3.connect(DB)
+        try:
+            con.execute(
+                "INSERT INTO domanmarknaden (doman, pris, saljare_email, beskrivning) VALUES (?,?,?,?)",
+                (doman, pris, email, besk)
+            )
+        except sqlite3.IntegrityError:
+            # Redan listad (t.ex. dubbel-klick) — uppdatera bara status
+            con.execute(
+                "UPDATE domanmarknaden SET status='aktiv' WHERE doman=?",
+                (doman,)
+            )
+        con.execute("DELETE FROM pending_listings WHERE doman=?", (doman,))
+        con.commit()
+        con.close()
+    except Exception as e:
+        print(f'[VERIFIERA] DB-fel: {e}', flush=True)
+        return jsonify({'ok': False, 'error': 'Databasfel, kontakta support.'})
+
+    _logga_email(
+        email,
+        f'Din domän {doman} är verifierad och listad!',
+        f'Grattis! {doman} är nu verifierad och listad till salu för {pris:,} kr på Namnverket.\n'
+        f'Vi kontaktar dig så fort en köpare dyker upp.\n\nNamnverket'
+    )
+    print(f'[VERIFIERA] {doman} verifierad och listad, email={email}', flush=True)
+    return jsonify({'ok': True})
+
+
+@app.route('/marknadsplats')
+def marknadsplats():
+    con = sqlite3.connect(DB)
+    rows = con.execute(
+        "SELECT doman, pris, beskrivning, listad FROM domanmarknaden WHERE status='aktiv' ORDER BY listad DESC"
+    ).fetchall()
+    con.close()
+    domaner = [{'doman': r[0], 'pris': r[1], 'beskrivning': r[2] or '', 'listad': r[3]} for r in rows]
+    return render_template_string(MARKNADSPLATS_HTML, domaner=domaner)
+
+
+@app.route('/kop-begagnad/<path:doman>')
+@limiter.limit('10 per minute')
+def kop_begagnad(doman):
+    doman = doman.strip().lower()
+    if not _valider_doman(doman):
+        return 'Ogiltig domän', 400
+    con = sqlite3.connect(DB)
+    row = con.execute(
+        "SELECT pris, saljare_email FROM domanmarknaden WHERE doman=? AND status='aktiv'",
+        (doman,)
+    ).fetchone()
+    con.close()
+    if not row:
+        return 'Domänen är inte längre till salu.', 404
+    pris, saljare_email = row[0], row[1]
+    sid   = get_session_id()
+    email = unquote(request.cookies.get('nk_email', '').strip()) or ''
+    if email and not _valider_email(email):
+        email = ''
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            customer_email=email or None,
+            line_items=[{
+                'price_data': {
+                    'currency': 'sek',
+                    'product_data': {'name': f'Domän: {doman} (begagnad)'},
+                    'unit_amount': pris * 100,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=request.host_url + 'tack-begagnad?stripe_session={CHECKOUT_SESSION_ID}',
+            cancel_url=request.host_url + 'marknadsplats',
+            metadata={'doman': doman, 'session_id': sid, 'saljare_email': saljare_email, 'typ': 'begagnad'},
+        )
+    except Exception as e:
+        print(f'[KÖP-BEGAGNAD] Stripe-fel: {e}', flush=True)
+        return 'Betalning kunde inte skapas, försök igen.', 500
+    resp = redirect(session.url, code=303)
+    resp.set_cookie('sid', sid, max_age=60 * 60 * 24 * 365, samesite='Lax')
+    return resp
+
+
+@app.route('/tack-begagnad')
+def tack_begagnad():
+    stripe_session_id = request.args.get('stripe_session', '').strip()
+    doman = ''; email = ''; ok = False; fel = ''
+
+    if not stripe_session_id:
+        return redirect('/')
+
+    nybetald = markera_betald(stripe_session_id)
+    try:
+        sess = stripe.checkout.Session.retrieve(stripe_session_id)
+        if sess.payment_status == 'paid':
+            email = getattr(sess, 'customer_email', None) or ''
+            try:
+                doman          = sess.metadata['doman']
+                saljare_email  = sess.metadata.get('saljare_email', '')
+                betalat_pris   = getattr(sess, 'amount_total', 0) // 100
+            except (KeyError, AttributeError, TypeError):
+                doman = ''; saljare_email = ''; betalat_pris = 0
+
+            print(f'[TACK-BEGAGNAD] doman={doman!r} email={email!r} pris={betalat_pris} nybetald={nybetald}', flush=True)
+
+            if nybetald and doman:
+                provision = math.ceil(betalat_pris * 0.10)
+                try:
+                    con = sqlite3.connect(DB)
+                    con.execute(
+                        "UPDATE domanmarknaden SET status='såld' WHERE doman=?",
+                        (doman,)
+                    )
+                    con.execute(
+                        'INSERT INTO provisioner (doman, forsaljningspris, provision, kopare_email, saljare_email, stripe_session_id) VALUES (?,?,?,?,?,?)',
+                        (doman, betalat_pris, provision, email, saljare_email, stripe_session_id)
+                    )
+                    con.commit()
+                    con.close()
+                    ok = True
+                except Exception as e:
+                    print(f'[TACK-BEGAGNAD] DB-fel: {e}', flush=True)
+                    fel = 'Databasfel — kontakta support.'
+
+                # Logga email-bekräftelser (stub)
+                if email:
+                    _logga_email(
+                        email,
+                        f'Du har köpt domänen {doman}',
+                        f'Grattis! Du har köpt {doman} för {betalat_pris:,} kr.\n'
+                        f'Överlåtelsen påbörjas nu och du hör av dig inom 24 timmar.\n\nNamnverket'
+                    )
+                if saljare_email:
+                    saljare_netto = betalat_pris - provision
+                    _logga_email(
+                        saljare_email,
+                        f'Din domän {doman} är såld!',
+                        f'Grattis — {doman} är såld för {betalat_pris:,} kr!\n'
+                        f'Din utbetalning: {saljare_netto:,} kr (efter 10% provision).\n'
+                        f'Vi kontaktar dig för att slutföra överlåtelsen.\n\nNamnverket'
+                    )
+    except Exception as e:
+        print(f'[TACK-BEGAGNAD] Stripe-fel: {e}', flush=True)
+        fel = str(e)
+
+    resp = make_response(render_template_string(TACK_BEGAGNAD_HTML, ok=ok, doman=doman, email=email, fel=fel))
+    if email:
+        resp.set_cookie('nk_email', email, max_age=60 * 60 * 24 * 365, samesite='Lax')
+    return resp
+
+
 @app.route('/sitemap.xml')
 def sitemap():
     xml = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -3451,6 +4218,8 @@ def sitemap():
   <url><loc>https://namnverket.se/kolla-foretagsnamn</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://namnverket.se/registrera-doman-se</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://namnverket.se/vad-ar-ett-varumarke</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://namnverket.se/marknadsplats</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://namnverket.se/salj</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://namnverket.se/favoriter</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
 </urlset>'''
     return app.response_class(xml, mimetype='application/xml')
