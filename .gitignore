@@ -1,0 +1,7 @@
+nyklar/
+app/.env
+__pycache__/
+*.pyc
+bolag.db
+bolagsverket/
+.DS_Store
