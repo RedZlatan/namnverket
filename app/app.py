@@ -619,6 +619,9 @@ HTML = '''
             body { padding: 0 16px; margin-top: 40px; }
             h1 { font-size: 28px; }
 
+            /* ── Sticky sökfält ── */
+            .sok-sektion { position: sticky; top: 0; background: #fff; z-index: 100; padding: 12px 0; border-bottom: 0.5px solid rgba(0,0,0,0.06); margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
+
             /* ── Sökfält + knappar ── */
             .input-rad { flex-direction: column; gap: 8px; }
             .input-rad input { width: 100%; height: 52px; min-height: 52px; font-size: 16px; padding: 14px 16px; box-sizing: border-box; }
@@ -647,10 +650,12 @@ HTML = '''
     <main>
     <h1>Hitta ett namn som faktiskt är ledigt.</h1>
     <p class="sub">Kolla bolagsnamn, domäner och varumärken i ett slag.</p>
+    <div class="sok-sektion">
     <div class="input-rad">
         <input type="text" id="namn" placeholder="t.ex. fiskbularna" />
         <button onclick="kolla()">kolla</button>
         <button class="slumpa-btn" onclick="slumpa()">slumpa →</button>
+    </div>
     </div>
     <div class="funktioner-grid">
         <a href="/generator" class="funktion-kort">
@@ -863,6 +868,9 @@ HTML = '''
             });
 
             document.getElementById('result').innerHTML = html;
+            if (window.innerWidth <= 600) {
+                document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
 
             var box = document.getElementById('analys-box');
             box.innerHTML =
