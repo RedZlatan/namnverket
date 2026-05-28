@@ -546,11 +546,14 @@ HTML = '''
         .input-rad input:focus { outline: none; border-color: rgba(0,0,0,0.3); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
         .input-rad button { height: 48px; padding: 0 22px; background: var(--svart); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; margin: 0; width: auto; }
         .input-rad button:hover { background: #1a1a1a; }
-        .slumpa-btn { height: 48px; padding: 0 18px; background: transparent; color: var(--svart); border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 400; cursor: pointer; white-space: nowrap; margin: 0; width: auto; }
-        .slumpa-btn:hover { background: #fafafa; border-color: rgba(0,0,0,0.4); }
-        .gen-nav { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
-        .gen-link { font-size: 13px; color: var(--text-tertiar); text-decoration: none; }
-        .gen-link:hover { color: var(--svart); }
+        .slumpa-btn { height: 48px; padding: 0 20px; background: transparent; color: var(--svart); border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 400; cursor: pointer; white-space: nowrap; margin: 0; width: auto; }
+        .slumpa-btn:hover { background: #fafafa; }
+        .funktioner-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 1.5rem 0; }
+        .funktion-kort { padding: 16px; border: 0.5px solid rgba(0,0,0,0.08); border-radius: 10px; text-decoration: none; color: var(--svart); transition: background 0.15s; display: flex; flex-direction: column; gap: 4px; }
+        .funktion-kort:hover { background: #fafafa; }
+        .funktion-ikon { font-size: 18px; margin-bottom: 4px; }
+        .funktion-namn { font-size: 14px; font-weight: 500; }
+        .funktion-beskrivning { font-size: 12px; color: var(--text-tertiar); }
         #result { margin-top: 40px; }
         .rad { display: flex; justify-content: space-between; align-items: baseline; padding: 13px 0; border-bottom: 0.5px solid var(--border); font-size: 14px; }
         .rad.top { align-items: flex-start; }
@@ -601,14 +604,17 @@ HTML = '''
         .mjuka-knapp:hover { background: var(--yta); }
         .token-kostnad { font-size: 11px; color: var(--text-tertiar); white-space: nowrap; }
         .faq { margin-top: 52px; padding-top: 36px; border-top: 0.5px solid var(--border); }
-        .faq-rubrik { font-size: 11px; letter-spacing: 0.12em; color: var(--text-tertiar); margin-bottom: 20px; font-weight: 400; }
-        details { border-bottom: 0.5px solid var(--border); transition: background 0.15s ease; border-radius: 6px; padding: 0 8px; margin: 0 -8px; }
-        details:hover { background: #fafafa; }
-        details summary { font-size: 14px; padding: 14px 0; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .faq-rubrik { font-size: 11px; letter-spacing: 0.12em; color: var(--text-tertiar); margin-bottom: 4px; font-weight: 400; display: inline-block; }
+        .faq-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+        .visa-alla-btn { font-size: 12px; color: var(--text-tertiar); background: none; border: none; cursor: pointer; font-family: 'Inter', sans-serif; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+        .visa-alla-btn:hover { color: var(--svart); }
+        details { border-bottom: 0.5px solid rgba(0,0,0,0.06); padding: 0; margin: 0; transition: background 0.15s ease, padding 0.1s ease, margin 0.1s ease; }
+        details:hover { background: #fafafa; margin: 0 -16px; padding: 0 16px; }
+        details summary { font-size: 15px; font-weight: 400; padding: 14px 0; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none; }
         details summary::-webkit-details-marker { display: none; }
         details summary::after { content: '+'; color: var(--text-tertiar); font-size: 18px; font-weight: 300; margin-left: 12px; flex-shrink: 0; }
-        details[open] summary::after { content: '−'; }
-        details p { font-size: 14px; color: var(--text-sekunder); line-height: 1.75; padding-bottom: 16px; margin: 0; }
+        details[open] summary::after { content: '×'; }
+        details p { font-size: 14px; color: var(--text-sekunder); line-height: 1.7; margin: 0 0 16px; }
         @media (max-width: 600px) {
             body { padding: 0 16px; margin-top: 40px; }
             h1 { font-size: 28px; }
@@ -619,8 +625,10 @@ HTML = '''
             .input-rad button { width: 100%; height: 52px; }
             .slumpa-btn { width: 100%; height: 52px; background: transparent; color: #0a0a0a; border: 0.5px solid rgba(0,0,0,0.3); }
 
-            /* ── Navbar-länkar: flex-wrap hanterar radbrytning automatiskt ── */
-            .gen-nav { gap: 6px 12px; }
+            /* ── Funktionskort ── */
+            .funktioner-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 1rem 0; }
+            .funktion-kort { padding: 12px; }
+            details:hover { margin: 0 -8px; padding: 0 8px; }
 
             /* ── Resultatrader: label + värde på egna rader ── */
             .rad { flex-direction: column; align-items: flex-start; gap: 3px; }
@@ -632,8 +640,8 @@ HTML = '''
 <body>
     <header style="display:flex;justify-content:space-between;align-items:center;">
         <p class="logo" style="margin:0;">NAMNVERKET</p>
-        <span style="font-size:12px;color:var(--text-tertiar);cursor:pointer;" onclick="oppnaModal()">
-            <strong id="token-antal">—</strong>&nbsp;tokens
+        <span id="token-visning-header" style="display:none;font-size:12px;color:var(--text-tertiar);cursor:pointer;" onclick="oppnaModal()">
+            <strong id="token-antal"></strong>&nbsp;tokens
         </span>
     </header>
     <main>
@@ -644,19 +652,36 @@ HTML = '''
         <button onclick="kolla()">kolla</button>
         <button class="slumpa-btn" onclick="slumpa()">slumpa →</button>
     </div>
-    <nav class="gen-nav">
-        <a href="/generator" class="gen-link">&#x2756; Namnkonfigurator</a>
-        <a href="/favoriter" class="gen-link">&#x2665; sparade</a>
-        <a href="/trender" class="gen-link">&#x2191; trender</a>
-        <a href="/domanmarknaden" class="gen-link">&#x25C8; domänmarknaden</a>
-        <a href="/marknadsplats" class="gen-link">&#x21C4; marknadsplats</a>
-        <a href="/salj" class="gen-link">&#x2B; sälj din domän</a>
-    </nav>
+    <div class="funktioner-grid">
+        <a href="/generator" class="funktion-kort">
+            <span class="funktion-ikon">✦</span>
+            <span class="funktion-namn">Namnkonfigurator</span>
+            <span class="funktion-beskrivning">Generera namn för ditt bolag</span>
+        </a>
+        <a href="/trender" class="funktion-kort">
+            <span class="funktion-ikon">↑</span>
+            <span class="funktion-namn">Trender</span>
+            <span class="funktion-beskrivning">Heta branscher just nu</span>
+        </a>
+        <a href="/domanmarknaden" class="funktion-kort">
+            <span class="funktion-ikon">◈</span>
+            <span class="funktion-namn">Domänmarknaden</span>
+            <span class="funktion-beskrivning">Vad är din domän värd?</span>
+        </a>
+        <a href="/marknadsplats" class="funktion-kort">
+            <span class="funktion-ikon">⇌</span>
+            <span class="funktion-namn">Köp &amp; sälj domäner</span>
+            <span class="funktion-beskrivning">Andrahandsmarknad</span>
+        </a>
+    </div>
     <div id="result"></div>
     <div id="analys-box" style="display:none;"></div>
 
     <section class="faq" aria-label="Vanliga frågor">
-        <p class="faq-rubrik">VANLIGA FRÅGOR</p>
+        <div class="faq-header">
+            <p class="faq-rubrik" style="margin:0;">VANLIGA FRÅGOR</p>
+            <button class="visa-alla-btn" onclick="visaAllaFragor(this)">Visa alla frågor</button>
+        </div>
         <details>
             <summary>Hur kollar jag om ett företagsnamn är ledigt?</summary>
             <p>Skriv in ditt önskade namn i sökfältet ovan. Vi kontrollerar automatiskt Bolagsverkets register med 3 miljoner bolag, domäntillgänglighet (.se, .com, .io, .ai) och varumärkesskydd hos PRV och EU — allt i ett enda sökning.</p>
@@ -686,8 +711,8 @@ HTML = '''
             <p>Grundkollar av bolagsnamn och domäner är alltid gratis. Tokens används för AI-drivna funktioner som namnanalys och namnkonfiguratorn. Du köper tokens i förväg — 50 tokens för 19 kr, 200 för 49 kr eller 500 för 99 kr.</p>
         </details>
         <details>
-            <summary>Vad betyder AI-analysen "Mjuka världen"?</summary>
-            <p>Mjuka världen är vår AI-drivna namnanalys som undersöker om ditt företagsnamn betyder något oönskat på andra språk, hur lätt det är att uttala internationellt, och vilka kulturella associationer det väcker — viktigt om du planerar att verka utanför Sverige.</p>
+            <summary>Vad är "Mjuka världen"?</summary>
+            <p>Mjuka världen är vår namnanalys som undersöker om ditt företagsnamn betyder något oönskat på andra språk, hur lätt det är att uttala internationellt, och vilka kulturella associationer det väcker — viktigt om du planerar att verka utanför Sverige.</p>
         </details>
         <details>
             <summary>Hur säljer jag min domän på Namnverket?</summary>
@@ -1098,12 +1123,24 @@ HTML = '''
                 '<div id="' + boxId + '" class="reg-box" style="display:none;"></div>';
         }
 
+        function getCookieVal(name) {
+            var m = document.cookie.match('(?:^|;)\\s*' + name + '=([^;]*)');
+            return m ? decodeURIComponent(m[1]) : null;
+        }
         async function hämtaTokens() {
             try {
                 var r = await fetch('/tokens');
                 var d = await r.json();
-                document.getElementById('token-antal').textContent = d.tokens;
+                var header = document.getElementById('token-visning-header');
+                if (getCookieVal('nk_email')) {
+                    document.getElementById('token-antal').textContent = d.tokens;
+                    if (header) header.style.display = 'inline';
+                }
             } catch(e) {}
+        }
+        function visaAllaFragor(btn) {
+            document.querySelectorAll('.faq details').forEach(function(d) { d.open = true; });
+            btn.style.display = 'none';
         }
 
         function oppnaModal() {
