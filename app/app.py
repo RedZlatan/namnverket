@@ -1577,11 +1577,12 @@ GENERATOR_HTML = '''<!DOCTYPE html>
         @media (max-width: 600px) {
             body { padding: 0 16px; margin-top: 40px; }
             h1 { font-size: 28px; }
-            input { font-size: 16px; }
+            input[type=text] { font-size: 16px; }
             .rad { flex-direction: column; gap: 4px; }
             .rad span:last-child { text-align: left; }
-            button { width: 100%; }
-            .slump-btn { display: block; width: 100%; text-align: center; }
+            button.gen { width: 100%; height: 52px; }
+            button.gen-fler { width: 100%; }
+            .slump-btn { display: block; width: 100%; text-align: center; box-sizing: border-box; }
         }
         .falt { margin-bottom: 20px; }
         .falt label { display: block; font-size: 12px; color: var(--text-tertiar); margin-bottom: 10px; letter-spacing: 0.04em; }
@@ -2267,10 +2268,10 @@ FAVORITER_HTML = '''<!DOCTYPE html>
         @media (max-width: 600px) {
             body { padding: 0 16px; margin-top: 40px; }
             h1 { font-size: 28px; }
-            input { font-size: 16px; }
+            input[type=text] { font-size: 16px; }
             .rad { flex-direction: column; gap: 4px; }
             .rad span:last-child { text-align: left; }
-            button { width: 100%; }
+            .gen-inline-btn { width: 100%; height: 48px; box-sizing: border-box; }
         }
     </style>
 </head>
@@ -2799,10 +2800,10 @@ KOPA_DOMAN_LANDING_HTML = '''<!DOCTYPE html>
         @media (max-width: 600px) {
             body { padding: 0 16px; margin-top: 40px; }
             h1 { font-size: 28px; }
-            input { font-size: 16px; }
+            input[type=text] { font-size: 16px; }
             .pris-grid { grid-template-columns: 1fr; }
             .sok-rad { flex-direction: column; }
-            .sok-btn { width: 100%; }
+            .sok-btn { width: 100%; height: 52px; }
         }
     </style>
 </head>
@@ -3248,7 +3249,16 @@ _SIDA_CSS = '''
         .fakta-ruta { border: 0.5px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 18px 16px; background: #f9f9f8; }
         .fakta-varde { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; margin-bottom: 6px; }
         .fakta-text { font-size: 12px; color: #6b6b6b; line-height: 1.55; }
-        @media (max-width: 600px) { body { padding: 0 16px; margin-top: 40px; } h1 { font-size: 26px; } .est-rad { flex-direction: column; } input { font-size: 16px; } button { width: 100%; } .fakta-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 600px) {
+            body { padding: 0 16px; margin-top: 40px; }
+            h1 { font-size: 26px; }
+            input[type=text] { font-size: 16px; }
+            .est-rad { flex-direction: column; }
+            .est-btn { width: 100%; height: 52px; }
+            .fakta-grid { grid-template-columns: 1fr; }
+            .sok-rad { flex-direction: column; }
+            .sok-input, .sort-select { width: 100%; box-sizing: border-box; }
+        }
 '''
 
 TRENDER_HTML = '''<!DOCTYPE html>
