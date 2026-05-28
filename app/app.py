@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, request, jsonify, render_template_string, redirect, make_response
+from flask import Flask, request, jsonify, render_template_string, redirect, make_response, Response
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import sqlite3
@@ -4404,26 +4404,18 @@ def tack_begagnad():
 
 @app.route('/sitemap.xml')
 def sitemap():
-    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    urls = [
-        ('https://namnverket.se/',                          'daily',   '1.0'),
-        ('https://namnverket.se/generator',                 'weekly',  '0.8'),
-        ('https://namnverket.se/trender',                   'daily',   '0.7'),
-        ('https://namnverket.se/domanmarknaden',             'daily',   '0.7'),
-        ('https://namnverket.se/marknadsplats',             'daily',   '0.8'),
-        ('https://namnverket.se/kolla-foretagsnamn',        'monthly', '0.7'),
-        ('https://namnverket.se/registrera-doman-se',       'monthly', '0.7'),
-        ('https://namnverket.se/vad-ar-ett-varumarke',      'monthly', '0.7'),
-    ]
-    for loc, freq, prio in urls:
-        xml += '  <url>\n'
-        xml += f'    <loc>{loc}</loc>\n'
-        xml += f'    <changefreq>{freq}</changefreq>\n'
-        xml += f'    <priority>{prio}</priority>\n'
-        xml += '  </url>\n'
-    xml += '</urlset>'
-    return app.response_class(xml, mimetype='application/xml')
+    xml = '''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://namnverket.se/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://namnverket.se/generator</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://namnverket.se/trender</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://namnverket.se/domanmarknaden</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://namnverket.se/marknadsplats</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://namnverket.se/kolla-foretagsnamn</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://namnverket.se/registrera-doman-se</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://namnverket.se/vad-ar-ett-varumarke</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+</urlset>'''
+    return Response(xml, mimetype='application/xml')
 
 @app.route('/robots.txt')
 def robots():
