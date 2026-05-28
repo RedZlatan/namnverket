@@ -1374,10 +1374,29 @@ def prv():
     try:
         con = sqlite3.connect(DB)
         cur = con.cursor()
+
+        # 1. Exakt match (case-insensitive)
         rows = cur.execute(
-            "SELECT namn, status, klass FROM varumärken WHERE namn LIKE ? COLLATE NOCASE LIMIT 5",
-            (f'%{namn}%',)
+            "SELECT namn, status, klass FROM varumärken WHERE namn = ? COLLATE NOCASE LIMIT 5",
+            (namn,)
         ).fetchall()
+
+        # 2. Börjar med namnet
+        if not rows:
+            rows = cur.execute(
+                "SELECT namn, status, klass FROM varumärken WHERE namn LIKE ? COLLATE NOCASE LIMIT 5",
+                (namn + '%',)
+            ).fetchall()
+
+        # 3. Innehåller som helt ord (omgivet av mellanslag eller stränggräns)
+        if not rows:
+            rows = cur.execute(
+                "SELECT namn, status, klass FROM varumärken WHERE "
+                "namn LIKE ? COLLATE NOCASE OR namn LIKE ? COLLATE NOCASE OR namn LIKE ? COLLATE NOCASE "
+                "LIMIT 5",
+                (f'% {namn} %', f'% {namn}', f'{namn} %')
+            ).fetchall()
+
         con.close()
 
         if not rows:
