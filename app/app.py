@@ -299,40 +299,63 @@ def get_op_handle():
     _op_handle_cache['handle'] = handle
     return handle
 
-_USD_SEK = 10.5  # approximate exchange rate
+_EUR_SEK_FALLBACK = 11.5
+_FX_CACHE = {'eur_sek': None, 'ts': 0}
+
+# Golvpriser per TLD i SEK — skyddar mot underprissättning
+_GOLVPRIS = {'com': 149}
+
+def eur_till_sek(eur):
+    """Live EUR→SEK från exchangerate-api.com, cachas 1 timme."""
+    if _FX_CACHE['eur_sek'] and time.time() - _FX_CACHE['ts'] < 3600:
+        return eur * _FX_CACHE['eur_sek']
+    try:
+        r = requests.get('https://api.exchangerate-api.com/v4/latest/EUR', timeout=5)
+        kurs = float(r.json()['rates']['SEK'])
+        _FX_CACHE['eur_sek'] = kurs
+        _FX_CACHE['ts'] = time.time()
+        print(f'[FX] live EUR/SEK={kurs:.4f}', flush=True)
+        return eur * kurs
+    except Exception as e:
+        print(f'[FX] fallback EUR/SEK={_EUR_SEK_FALLBACK} fel={e}', flush=True)
+        return eur * _EUR_SEK_FALLBACK
 
 def hämta_pris(doman):
-    """Returnerar (grossistpris_sek, kundpris_kr, valuta_orig). Kastar Exception vid fel."""
+    """Returnerar (grossistpris_sek, kundpris_kr, valuta_orig). Kastar Exception vid fel.
+
+    Endpoint: POST /v1beta/domains/check med with_price=True, period=1
+    Prisbas: reseller.price (alltid EUR) → konverteras live via exchangerate-api.com.
+    Marginal: 1.67× (~40%). Golvpris per TLD tillämpas efter marginalen.
+    """
     namn, ext = doman.split('.', 1)
     token = get_op_token()
+
     r = requests.post(
         'https://api.openprovider.eu/v1beta/domains/check',
         headers={'Authorization': f'Bearer {token}'},
-        json={'domains': [{'name': namn, 'extension': ext}], 'with_price': True},
+        json={'domains': [{'name': namn, 'extension': ext}], 'with_price': True, 'period': 1},
         timeout=10
     )
     data = r.json()
-    print(f'[PRIS] doman={doman} råsvar={data}', flush=True)
+    print(f'[PRIS] check HTTP={r.status_code} doman={doman} råsvar={data}', flush=True)
+
     if data.get('code') != 0:
         raise Exception(data.get('desc', 'API-fel'))
     results = (data.get('data') or {}).get('results') or []
     if not results:
         raise Exception('Pris ej tillgängligt')
+
     price_obj = results[0].get('price') or {}
-    product = price_obj.get('product') or {}
-    reseller = price_obj.get('reseller') or {}
-    pris = product.get('price') or reseller.get('price')
-    valuta = product.get('currency') or reseller.get('currency', 'SEK')
-    print(f'[PRIS] doman={doman} price_obj={price_obj} pris={pris} valuta={valuta}', flush=True)
-    if pris is None:
-        raise Exception('Pris saknas i svar')
-    grossistpris = float(pris)
-    # Openprovider returnerar USD för internationella TLDs — konvertera till SEK
-    if valuta == 'USD':
-        grossistpris = grossistpris * _USD_SEK
-    kundpris = math.ceil(grossistpris * 1.67)
-    print(f'[PRIS] doman={doman} grossist_sek={grossistpris:.2f} kundpris={kundpris} valuta_orig={valuta}', flush=True)
-    return grossistpris, kundpris, valuta
+    reseller  = price_obj.get('reseller') or {}
+    if reseller.get('price') is None:
+        raise Exception('reseller.price saknas i svar')
+
+    eur        = float(reseller['price'])
+    sek        = eur_till_sek(eur)
+    kundpris   = max(math.ceil(sek * 1.67), _GOLVPRIS.get(ext, 0))
+
+    print(f'[PRIS] .{ext}: {eur} EUR = {sek:.2f} SEK grossist, kundpris: {kundpris} SEK', flush=True)
+    return sek, kundpris, 'EUR'
 
 _BOLAGSFORM_NAMN = {
     'AB-ORGFO': 'Aktiebolag', 'E-ORGFO': 'Enskild firma',
@@ -1415,7 +1438,8 @@ def op_pris():
         return jsonify({'error': 'Ogiltig domän'})
     try:
         grossistpris, kundpris, valuta = hämta_pris(doman)
-        print(f'[OP_PRIS] grossist={grossistpris} kundpris={kundpris} {valuta}', flush=True)
+        print(f'[PRIS] råpris från Openprovider: {grossistpris:.2f} SEK (valuta_orig={valuta})', flush=True)
+        print(f'[PRIS] kundpris med 40% marginal: {kundpris} SEK', flush=True)
         return jsonify({'grossistpris': grossistpris, 'kundpris': kundpris, 'valuta': valuta})
     except Exception as e:
         print(f'[OP_PRIS] Fel: {e}', flush=True)
