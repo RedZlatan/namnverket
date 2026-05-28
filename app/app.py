@@ -619,8 +619,8 @@ HTML = '''
             body { padding: 0 16px; margin-top: 40px; }
             h1 { font-size: 28px; }
 
-            /* ── Sticky sökfält ── */
-            .sok-sektion { position: sticky; top: 0; background: #fff; z-index: 100; padding: 12px 0; border-bottom: 0.5px solid rgba(0,0,0,0.06); margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
+            /* ── Sok-sektion: ingen sticky längre ── */
+            .sok-sektion { }
 
             /* ── Sökfält + knappar ── */
             .input-rad { flex-direction: column; gap: 8px; }
@@ -641,6 +641,7 @@ HTML = '''
     </style>
 </head>
 <body>
+    <div id="sticky-namn" style="display:none;position:fixed;top:0;left:0;right:0;z-index:100;background:white;padding:10px 16px;font-size:13px;font-weight:500;border-bottom:0.5px solid rgba(0,0,0,0.08);text-align:center;"></div>
     <header style="display:flex;justify-content:space-between;align-items:center;">
         <p class="logo" style="margin:0;">NAMNVERKET</p>
         <span id="token-visning-header" style="display:none;font-size:12px;color:var(--text-tertiar);cursor:pointer;" onclick="oppnaModal()">
@@ -833,6 +834,7 @@ HTML = '''
             var namn = document.getElementById('namn').value.trim();
             console.log('[kolla] namn=' + namn);
             if (!namn) return;
+            document.getElementById('sticky-namn').textContent = namn;
             document.getElementById('result').innerHTML = '<p class="laddar" style="font-size:14px;padding-top:16px;">kollar...</p>';
             document.getElementById('analys-box').style.display = 'none';
 
@@ -1150,6 +1152,16 @@ HTML = '''
             document.querySelectorAll('.faq details').forEach(function(d) { d.open = true; });
             btn.style.display = 'none';
         }
+
+        (function() {
+            var sokSektion = document.querySelector('.sok-sektion');
+            var namnBadge = document.getElementById('sticky-namn');
+            window.addEventListener('scroll', function() {
+                if (window.innerWidth <= 600 && sokSektion && namnBadge.textContent) {
+                    namnBadge.style.display = sokSektion.getBoundingClientRect().bottom < 0 ? 'block' : 'none';
+                }
+            }, { passive: true });
+        })();
 
         function oppnaModal() {
             console.log('[oppnaModal] öppnar modal');
