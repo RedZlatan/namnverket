@@ -608,7 +608,7 @@ HTML = '''
 
             /* ── Sökfält + knappar ── */
             .input-rad { flex-direction: column; gap: 8px; }
-            .input-rad input { width: 100%; height: 52px; font-size: 16px; padding: 0 16px; box-sizing: border-box; }
+            .input-rad input { width: 100%; height: 52px; min-height: 52px; font-size: 16px; padding: 14px 16px; box-sizing: border-box; }
             .input-rad button { width: 100%; height: 52px; }
             .slumpa-btn { width: 100%; height: 52px; background: transparent; color: #0a0a0a; border: 0.5px solid rgba(0,0,0,0.3); }
 
