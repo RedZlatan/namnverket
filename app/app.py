@@ -541,7 +541,8 @@ HTML = '''
         .input-rad button:hover { background: #1a1a1a; }
         .slumpa-btn { height: 48px; padding: 0 18px; background: transparent; color: var(--svart); border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 400; cursor: pointer; white-space: nowrap; margin: 0; width: auto; }
         .slumpa-btn:hover { background: #fafafa; border-color: rgba(0,0,0,0.4); }
-        .gen-link { display: inline-block; margin-top: 14px; font-size: 13px; color: var(--text-tertiar); text-decoration: none; }
+        .gen-nav { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+        .gen-link { font-size: 13px; color: var(--text-tertiar); text-decoration: none; }
         .gen-link:hover { color: var(--svart); }
         #result { margin-top: 40px; }
         .rad { display: flex; justify-content: space-between; align-items: baseline; padding: 13px 0; border-bottom: 0.5px solid var(--border); font-size: 14px; }
@@ -604,11 +605,20 @@ HTML = '''
         @media (max-width: 600px) {
             body { padding: 0 16px; margin-top: 40px; }
             h1 { font-size: 28px; }
-            input { font-size: 16px; }
-            .input-rad { flex-direction: column; }
-            .rad { flex-direction: column; gap: 4px; }
-            .rad span:last-child { text-align: left; }
-            button { width: 100%; }
+
+            /* ── Sökfält + knappar ── */
+            .input-rad { flex-direction: column; gap: 8px; }
+            .input-rad input { width: 100%; height: 52px; font-size: 16px; padding: 0 16px; box-sizing: border-box; }
+            .input-rad button { width: 100%; height: 52px; }
+            .slumpa-btn { width: 100%; height: 52px; background: transparent; color: #0a0a0a; border: 0.5px solid rgba(0,0,0,0.3); }
+
+            /* ── Navbar-länkar: flex-wrap hanterar radbrytning automatiskt ── */
+            .gen-nav { gap: 6px 12px; }
+
+            /* ── Resultatrader: label + värde på egna rader ── */
+            .rad { flex-direction: column; align-items: flex-start; gap: 3px; }
+            .rad > span:last-child, .rad > div:last-child { text-align: left; }
+            .match-lista { text-align: left; max-width: 100%; }
         }
     </style>
 </head>
@@ -627,12 +637,14 @@ HTML = '''
         <button onclick="kolla()">kolla</button>
         <button class="slumpa-btn" onclick="slumpa()">slumpa →</button>
     </div>
-    <a href="/generator" class="gen-link">&#x2756; Namnkonfigurator</a>
-    <a href="/favoriter" class="gen-link" style="margin-left:16px;">&#x2665; sparade</a>
-    <a href="/trender" class="gen-link" style="margin-left:16px;">&#x2191; trender</a>
-    <a href="/domanmarknaden" class="gen-link" style="margin-left:16px;">&#x25C8; domänmarknaden</a>
-    <a href="/marknadsplats" class="gen-link" style="margin-left:16px;">&#x21C4; marknadsplats</a>
-    <a href="/salj" class="gen-link" style="margin-left:16px;">&#x2B; sälj din domän</a>
+    <nav class="gen-nav">
+        <a href="/generator" class="gen-link">&#x2756; Namnkonfigurator</a>
+        <a href="/favoriter" class="gen-link">&#x2665; sparade</a>
+        <a href="/trender" class="gen-link">&#x2191; trender</a>
+        <a href="/domanmarknaden" class="gen-link">&#x25C8; domänmarknaden</a>
+        <a href="/marknadsplats" class="gen-link">&#x21C4; marknadsplats</a>
+        <a href="/salj" class="gen-link">&#x2B; sälj din domän</a>
+    </nav>
     <div id="result"></div>
     <div id="analys-box" style="display:none;"></div>
 
