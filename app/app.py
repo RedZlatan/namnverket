@@ -871,7 +871,9 @@ HTML = '''
 
             document.getElementById('result').innerHTML = html;
             if (window.innerWidth <= 600) {
-                document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                var result = document.getElementById('result');
+                var y = result.getBoundingClientRect().top + window.scrollY - 60;
+                window.scrollTo({ top: y, behavior: 'smooth' });
             }
 
             var box = document.getElementById('analys-box');
