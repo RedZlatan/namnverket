@@ -485,7 +485,13 @@ HTML = '''
         {"@type":"Question","name":"Vad betyder AI-analysen Mjuka världen?","acceptedAnswer":{"@type":"Answer","text":"Mjuka världen är vår AI-drivna namnanalys som undersöker om ditt företagsnamn betyder något oönskat på andra språk, hur lätt det är att uttala internationellt, och vilka kulturella associationer det väcker."}},
         {"@type":"Question","name":"Kan jag registrera en domän direkt på Namnverket?","acceptedAnswer":{"@type":"Answer","text":"Ja! Om en domän visas som ledig kan du registrera den direkt på Namnverket med kort. Vi hanterar registreringen åt dig via vårt partnerskap med en ackrediterad domänregistrar."}},
         {"@type":"Question","name":"Vad är ett varumärke och behöver jag skydda mitt?","acceptedAnswer":{"@type":"Answer","text":"Ett varumärke ger dig ensamrätt till ditt namn eller logotyp inom en viss bransch. Namnverket kollar automatiskt om ditt namn redan är registrerat som varumärke hos PRV (Sverige) och TMview (EU)."}},
-        {"@type":"Question","name":"Vad är tokens och hur fungerar betalningen?","acceptedAnswer":{"@type":"Answer","text":"Grundkollar av bolagsnamn och domäner är alltid gratis. Tokens används för AI-drivna funktioner som namnanalys och namnkonfiguratorn. Du köper tokens i förväg — 50 tokens för 19 kr, 200 för 49 kr eller 500 för 99 kr."}}
+        {"@type":"Question","name":"Vad är tokens och hur fungerar betalningen?","acceptedAnswer":{"@type":"Answer","text":"Grundkollar av bolagsnamn och domäner är alltid gratis. Tokens används för AI-drivna funktioner som namnanalys och namnkonfiguratorn. Du köper tokens i förväg — 50 tokens för 19 kr, 200 för 49 kr eller 500 för 99 kr."}},
+        {"@type":"Question","name":"Hur säljer jag min domän på Namnverket?","acceptedAnswer":{"@type":"Answer","text":"Gå till sälj-sidan, ange din domän, ditt pris och din e-post. Vi ber dig lägga till en DNS TXT-post för att verifiera ägarskapet och listar domänen automatiskt när verifieringen är klar."}},
+        {"@type":"Question","name":"Hur verifierar ni att säljaren äger domänen?","acceptedAnswer":{"@type":"Answer","text":"Du lägger till en TXT-post i din domäns DNS med en unik verifieringskod vi ger dig. När vi hittar posten vet vi att du kontrollerar domänen. Processen tar normalt 5–60 minuter beroende på din DNS-leverantör."}},
+        {"@type":"Question","name":"Vad kostar det att lista en domän till försäljning?","acceptedAnswer":{"@type":"Answer","text":"Det är helt gratis att lista din domän. Vi tar 10% provision enbart om domänen faktiskt säljs — inga upfront-kostnader, inga månadsavgifter."}},
+        {"@type":"Question","name":"Hur fungerar domänoverlåtelsen?","acceptedAnswer":{"@type":"Answer","text":"När en köpare betalar via Stripe hanterar vi överlåtelsen automatiskt via Openprovider. Domänen flyttas till köparens konto och säljaren får sitt belopp minus vår provision."}},
+        {"@type":"Question","name":"Vad är Namnkonfiguratorn?","acceptedAnswer":{"@type":"Answer","text":"Namnkonfiguratorn är ett AI-drivet verktyg som genererar företagsnamn baserat på din bransch, målgrupp och önskad känsla. Du kan förfina förslagen i flera rundor. Kostar 3 tokens per körning."}},
+        {"@type":"Question","name":"Hur fungerar prisestimatorn för domäner?","acceptedAnswer":{"@type":"Answer","text":"Prisestimatorn använder Claude AI för att värdera din domän baserat på längd, antal stavelser, TLD (.se vs .com), ordets igenkänning och marknadstrender. Kostar 1 token och finns på Domänmarknaden."}}
       ]
     }
     </script>
@@ -641,6 +647,30 @@ HTML = '''
             <summary>Vad betyder AI-analysen "Mjuka världen"?</summary>
             <p>Mjuka världen är vår AI-drivna namnanalys som undersöker om ditt företagsnamn betyder något oönskat på andra språk, hur lätt det är att uttala internationellt, och vilka kulturella associationer det väcker — viktigt om du planerar att verka utanför Sverige.</p>
         </details>
+        <details>
+            <summary>Hur säljer jag min domän på Namnverket?</summary>
+            <p>Gå till <a href="/salj" style="color:inherit;border-bottom:0.5px solid rgba(0,0,0,0.2);">Sälj domän</a>, ange din domän, ditt pris och din e-post. Vi ber dig sedan lägga till en DNS TXT-post för att verifiera ägarskapet, och listar domänen automatiskt när verifieringen är klar.</p>
+        </details>
+        <details>
+            <summary>Hur verifierar ni att säljaren äger domänen?</summary>
+            <p>Du lägger till en TXT-post i din domäns DNS med en unik verifieringskod vi ger dig. När vi hittar posten vet vi att du kontrollerar domänen. Processen tar normalt 5–60 minuter beroende på din DNS-leverantör.</p>
+        </details>
+        <details>
+            <summary>Vad kostar det att lista en domän till försäljning?</summary>
+            <p>Det är helt gratis att lista din domän. Vi tar 10% provision enbart om domänen faktiskt säljs — inga upfront-kostnader, inga månadsavgifter.</p>
+        </details>
+        <details>
+            <summary>Hur fungerar domänoverlåtelsen?</summary>
+            <p>När en köpare betalar via Stripe hanterar vi överlåtelsen automatiskt via Openprovider. Domänen flyttas till köparens konto och säljaren får sitt belopp minus vår provision.</p>
+        </details>
+        <details>
+            <summary>Vad är Namnkonfiguratorn?</summary>
+            <p>Namnkonfiguratorn är ett AI-drivet verktyg som genererar företagsnamn baserat på din bransch, målgrupp och önskad känsla. Du kan förfina förslagen i flera rundor tills du hittar ett namn du gillar. Kostar 3 tokens per körning. <a href="/generator" style="color:inherit;border-bottom:0.5px solid rgba(0,0,0,0.2);">Prova Namnkonfiguratorn →</a></p>
+        </details>
+        <details>
+            <summary>Hur fungerar prisestimatorn för domäner?</summary>
+            <p>Prisestimatorn använder Claude AI för att värdera din domän baserat på längd, antal stavelser, TLD (.se vs .com), ordets igenkänning och marknadstrender. Kostar 1 token. Hitta den på <a href="/domanmarknaden" style="color:inherit;border-bottom:0.5px solid rgba(0,0,0,0.2);">Domänmarknaden →</a></p>
+        </details>
     </section>
     </main>
 
@@ -649,6 +679,15 @@ HTML = '''
         <span id="token-visning" style="color:var(--text-tertiar);font-size:13px;">Behöver du fler tokens?</span>
         <button class="token-kop" onclick="oppnaModal()">Köp tokens</button>
     </div>
+    <nav style="margin-top:16px;font-size:12px;color:var(--text-tertiar);line-height:2.4;">
+      <a href="/" style="color:var(--text-tertiar);text-decoration:none;">Namnkoll</a> &middot;
+      <a href="/generator" style="color:var(--text-tertiar);text-decoration:none;">Namnkonfigurator</a> &middot;
+      <a href="/trender" style="color:var(--text-tertiar);text-decoration:none;">Trender</a> &middot;
+      <a href="/domanmarknaden" style="color:var(--text-tertiar);text-decoration:none;">Domänmarknaden</a> &middot;
+      <a href="/marknadsplats" style="color:var(--text-tertiar);text-decoration:none;">Marknadsplats</a> &middot;
+      <a href="/salj" style="color:var(--text-tertiar);text-decoration:none;">Sälj domän</a> &middot;
+      <a href="/kolla-foretagsnamn" style="color:var(--text-tertiar);text-decoration:none;">Guide</a>
+    </nav>
     </footer>
 
     <div class="modal-overlay" id="modal-overlay" onclick="stangModal(event)">
@@ -1464,8 +1503,8 @@ GENERATOR_HTML = '''<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Namnkonfigurator &mdash; Namnverket</title>
-    <meta name="description" content="Generera skräddarsydda namnförslag för ditt bolag med AI. Välj bransch, känsla och stil — få unika företagsnamn direkt.">
+    <title>Namnkonfigurator — Hitta rätt företagsnamn | Namnverket</title>
+    <meta name="description" content="Generera kreativa företagsnamn anpassade efter din bransch, målgrupp och känsla. AI-driven namnkonfigurator för svenska företag.">
     <meta property="og:title" content="Namnkonfigurator — Namnverket">
     <meta property="og:description" content="Generera skräddarsydda namnförslag för ditt bolag med AI.">
     <meta property="og:url" content="https://namnverket.se/generator">
@@ -2087,6 +2126,15 @@ GENERATOR_HTML = '''<!DOCTYPE html>
             </div>
         </div>
     </div>
+    <footer style="margin-top:56px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#a0a0a0;line-height:2.4;">
+      <a href="/" style="color:#a0a0a0;text-decoration:none;">Namnkoll</a> &middot;
+      <a href="/generator" style="color:#a0a0a0;text-decoration:none;">Namnkonfigurator</a> &middot;
+      <a href="/trender" style="color:#a0a0a0;text-decoration:none;">Trender</a> &middot;
+      <a href="/domanmarknaden" style="color:#a0a0a0;text-decoration:none;">Domänmarknaden</a> &middot;
+      <a href="/marknadsplats" style="color:#a0a0a0;text-decoration:none;">Marknadsplats</a> &middot;
+      <a href="/salj" style="color:#a0a0a0;text-decoration:none;">Sälj domän</a> &middot;
+      <a href="/kolla-foretagsnamn" style="color:#a0a0a0;text-decoration:none;">Guide</a>
+    </footer>
     </main>
 </body>
 </html>
@@ -3172,11 +3220,27 @@ TRENDER_HTML = '''<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Trender — Namnverket</title>
-    <meta name="description" content="Se vilka branscher som är hetast just nu, vad som söks mest på Namnverket och nyregistrerade bolag i Sverige.">
+    <title>Trender — Heta branscher och nyregistreringar | Namnverket</title>
+    <meta name="description" content="Se vilka branscher som trendar i Sverige just nu, mest sökta företagsnamn och nyregistrerade bolag hos Bolagsverket.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://namnverket.se/trender">
     <link rel="alternate" hreflang="sv" href="https://namnverket.se/trender" />
+    <meta property="og:title" content="Trender — Heta branscher och nyregistreringar | Namnverket">
+    <meta property="og:description" content="Se vilka branscher som trendar i Sverige just nu, mest sökta företagsnamn och nyregistrerade bolag hos Bolagsverket.">
+    <meta property="og:url" content="https://namnverket.se/trender">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Dataset",
+      "name": "Företagstrender Sverige",
+      "description": "Trenddata för företagsregistreringar och branscher i Sverige",
+      "provider": {
+        "@type": "Organization",
+        "name": "Namnverket"
+      }
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
@@ -3239,6 +3303,15 @@ TRENDER_HTML = '''<!DOCTYPE html>
         <p class="tom">Data inte tillgänglig.</p>
         {% endif %}
     </div>
+    <footer style="margin-top:48px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#a0a0a0;line-height:2.4;">
+      <a href="/" style="color:#a0a0a0;text-decoration:none;">Namnkoll</a> &middot;
+      <a href="/generator" style="color:#a0a0a0;text-decoration:none;">Namnkonfigurator</a> &middot;
+      <a href="/trender" style="color:#a0a0a0;text-decoration:none;">Trender</a> &middot;
+      <a href="/domanmarknaden" style="color:#a0a0a0;text-decoration:none;">Domänmarknaden</a> &middot;
+      <a href="/marknadsplats" style="color:#a0a0a0;text-decoration:none;">Marknadsplats</a> &middot;
+      <a href="/salj" style="color:#a0a0a0;text-decoration:none;">Sälj domän</a> &middot;
+      <a href="/kolla-foretagsnamn" style="color:#a0a0a0;text-decoration:none;">Guide</a>
+    </footer>
     </main>
 </body>
 </html>'''
@@ -3248,11 +3321,15 @@ DOMANMARKNADEN_HTML = '''<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Domänmarknaden — Namnverket</title>
-    <meta name="description" content="Top 10 dyraste domäner som sålts globalt, marknadsfakta och en AI-driven prisestimator för din domän.">
+    <title>Domänmarknaden — Köp och sälj domäner | Namnverket</title>
+    <meta name="description" content="Dyraste sålda domäner globalt, prisestimator och andrahandsmarknad för domäner. Sälj din domän eller hitta ett ledigt namn.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://namnverket.se/domanmarknaden">
     <link rel="alternate" hreflang="sv" href="https://namnverket.se/domanmarknaden" />
+    <meta property="og:title" content="Domänmarknaden — Köp och sälj domäner | Namnverket">
+    <meta property="og:description" content="Dyraste sålda domäner globalt, prisestimator och andrahandsmarknad för domäner.">
+    <meta property="og:url" content="https://namnverket.se/domanmarknaden">
+    <meta property="og:type" content="website">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
@@ -3309,6 +3386,15 @@ DOMANMARKNADEN_HTML = '''<!DOCTYPE html>
         </div>
         <div id="est-resultat"></div>
     </div>
+    <footer style="margin-top:48px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#a0a0a0;line-height:2.4;">
+      <a href="/" style="color:#a0a0a0;text-decoration:none;">Namnkoll</a> &middot;
+      <a href="/generator" style="color:#a0a0a0;text-decoration:none;">Namnkonfigurator</a> &middot;
+      <a href="/trender" style="color:#a0a0a0;text-decoration:none;">Trender</a> &middot;
+      <a href="/domanmarknaden" style="color:#a0a0a0;text-decoration:none;">Domänmarknaden</a> &middot;
+      <a href="/marknadsplats" style="color:#a0a0a0;text-decoration:none;">Marknadsplats</a> &middot;
+      <a href="/salj" style="color:#a0a0a0;text-decoration:none;">Sälj domän</a> &middot;
+      <a href="/kolla-foretagsnamn" style="color:#a0a0a0;text-decoration:none;">Guide</a>
+    </footer>
     </main>
 
     <script>
@@ -3429,11 +3515,19 @@ Namnverket kontrollerar samtidigt om ett företagsnamn är ledigt hos Bolagsverk
 - Namnkonfigurator — skräddarsydda namnförslag baserat på bransch och känsla
 - Slumpgenerator — slumpa fram ett företagsnamn
 
+## Nya funktioner
+- Domänmarknadsplats: köp och sälj begagnade domäner, 10% provision, DNS-verifiering av ägarskap
+- Trender: realtidsdata om heta branscher, mest sökta namn, nyregistreringar från Bolagsverket
+- Prisestimator: AI-driven värdering av domännamn baserat på längd, ord, TLD och marknadstrender
+- Namnkonfigurator: skräddarsydda namnförslag med förfiningsrundar baserat på bransch, känsla och målgrupp
+- Sparade favoriter: spara namn och se spindeldiagram över din namnstil
+
 ## Priser
 - Namnkoll: gratis
 - Tokens för AI-analys: 19-99 kr
 - Domänregistrering .se: 149 kr/år
 - Domänregistrering .com: 169 kr/år
+- Lista domän till försäljning: gratis (10% provision vid försäljning)
 
 ## Målgrupp
 Svenska entreprenörer, startups och småföretagare som ska starta eller byta namn på ett företag.
@@ -3764,6 +3858,15 @@ SALJ_HTML = '''<!DOCTYPE html>
         <li>Överlåtelse sker automatiskt via Openprovider</li>
         <li>Gratis att lista — inga upfront-kostnader</li>
     </ul>
+    <footer style="margin-top:48px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#a0a0a0;line-height:2.4;">
+      <a href="/" style="color:#a0a0a0;text-decoration:none;">Namnkoll</a> &middot;
+      <a href="/generator" style="color:#a0a0a0;text-decoration:none;">Namnkonfigurator</a> &middot;
+      <a href="/trender" style="color:#a0a0a0;text-decoration:none;">Trender</a> &middot;
+      <a href="/domanmarknaden" style="color:#a0a0a0;text-decoration:none;">Domänmarknaden</a> &middot;
+      <a href="/marknadsplats" style="color:#a0a0a0;text-decoration:none;">Marknadsplats</a> &middot;
+      <a href="/salj" style="color:#a0a0a0;text-decoration:none;">Sälj domän</a> &middot;
+      <a href="/kolla-foretagsnamn" style="color:#a0a0a0;text-decoration:none;">Guide</a>
+    </footer>
     </main>
 
     <script>
@@ -3850,11 +3953,23 @@ MARKNADSPLATS_HTML = '''<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Domänmarknadsplats — Namnverket</title>
-    <meta name="description" content="Köp och sälj domäner på Namnverkets marknadsplats. Hitta lediga domäner till salu från privatpersoner och företag.">
+    <title>Domäner till salu — Andrahandsmarknad | Namnverket</title>
+    <meta name="description" content="Köp och sälj domännamn direkt. Verifierade säljare, säker överlåtelse via Openprovider. 10% provision vid försäljning.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://namnverket.se/marknadsplats">
     <link rel="alternate" hreflang="sv" href="https://namnverket.se/marknadsplats" />
+    <meta property="og:title" content="Domäner till salu — Andrahandsmarknad | Namnverket">
+    <meta property="og:description" content="Köp och sälj domännamn direkt. Verifierade säljare, säker överlåtelse via Openprovider.">
+    <meta property="og:url" content="https://namnverket.se/marknadsplats">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Domäner till salu",
+      "description": "Andrahandsmarknad för domännamn"
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
@@ -3886,6 +4001,15 @@ MARKNADSPLATS_HTML = '''<!DOCTYPE html>
     <p style="margin-top:40px;font-size:13px;color:#a0a0a0;">
         Har du en domän att sälja? <a href="/salj" style="color:#0a0a0a;border-bottom:0.5px solid rgba(0,0,0,0.2);">Lista den gratis →</a>
     </p>
+    <footer style="margin-top:48px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#a0a0a0;line-height:2.4;">
+      <a href="/" style="color:#a0a0a0;text-decoration:none;">Namnkoll</a> &middot;
+      <a href="/generator" style="color:#a0a0a0;text-decoration:none;">Namnkonfigurator</a> &middot;
+      <a href="/trender" style="color:#a0a0a0;text-decoration:none;">Trender</a> &middot;
+      <a href="/domanmarknaden" style="color:#a0a0a0;text-decoration:none;">Domänmarknaden</a> &middot;
+      <a href="/marknadsplats" style="color:#a0a0a0;text-decoration:none;">Marknadsplats</a> &middot;
+      <a href="/salj" style="color:#a0a0a0;text-decoration:none;">Sälj domän</a> &middot;
+      <a href="/kolla-foretagsnamn" style="color:#a0a0a0;text-decoration:none;">Guide</a>
+    </footer>
     </main>
 
     <script>
