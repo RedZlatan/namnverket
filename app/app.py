@@ -4410,7 +4410,7 @@ def sitemap():
         ('https://namnverket.se/',                          'daily',   '1.0'),
         ('https://namnverket.se/generator',                 'weekly',  '0.8'),
         ('https://namnverket.se/trender',                   'daily',   '0.7'),
-        ('https://namnverket.se/dom%C3%A4nmarknaden',       'daily',   '0.7'),
+        ('https://namnverket.se/domanmarknaden',             'daily',   '0.7'),
         ('https://namnverket.se/marknadsplats',             'daily',   '0.8'),
         ('https://namnverket.se/kolla-foretagsnamn',        'monthly', '0.7'),
         ('https://namnverket.se/registrera-doman-se',       'monthly', '0.7'),
