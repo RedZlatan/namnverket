@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from difflib import SequenceMatcher
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import quote, unquote
+from pathlib import Path
 import os
 import time
 import math
@@ -20,7 +21,13 @@ import secrets
 from datetime import datetime, timedelta
 import dns.resolver as _dns_resolver
 
-load_dotenv(os.path.expanduser('~/Desktop/namnge/nyklar/.env'))
+for _env_path in [
+    Path('/var/www/namnverket/nyklar/.env'),
+    Path.home() / 'Desktop/namnge/nyklar/.env',
+]:
+    if _env_path.exists():
+        load_dotenv(_env_path)
+        break
 
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
