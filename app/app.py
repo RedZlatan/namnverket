@@ -20,6 +20,8 @@ import threading
 import secrets
 from datetime import datetime, timedelta
 import dns.resolver as _dns_resolver
+import markdown as _markdown
+import frontmatter as _frontmatter
 
 for _env_path in [
     Path('/var/www/namnverket/nyklar/.env'),
@@ -492,6 +494,35 @@ _AUTH_SNIPPET = (
     '</script>'
 )
 
+_BLOGG_DIR = Path(__file__).parent / 'blogg'
+
+def _las_alla_inlagg():
+    inlagg = []
+    for fil in sorted(_BLOGG_DIR.glob('*.md'), reverse=True):
+        post = _frontmatter.load(fil)
+        inlagg.append({
+            'slug': fil.stem,
+            'titel': post.get('titel', fil.stem),
+            'datum': post.get('datum', ''),
+            'beskrivning': post.get('beskrivning', ''),
+            'innehall': post.content,
+        })
+    inlagg.sort(key=lambda x: str(x['datum']), reverse=True)
+    return inlagg
+
+def _las_inlagg(slug):
+    fil = _BLOGG_DIR / f'{slug}.md'
+    if not fil.exists():
+        return None
+    post = _frontmatter.load(fil)
+    return {
+        'slug': slug,
+        'titel': post.get('titel', slug),
+        'datum': post.get('datum', ''),
+        'beskrivning': post.get('beskrivning', ''),
+        'innehall': post.content,
+    }
+
 _NAVBAR = (
     '<header style="background:#f5f0e8;padding:0 24px;margin:0 -24px 40px;border-bottom:1px solid rgba(31,70,56,0.08);">'
     '<div style="max-width:580px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;height:56px;">'
@@ -499,7 +530,10 @@ _NAVBAR = (
     '<img src="/static/logo.svg" style="height:32px;" alt="Namnverket">'
     '<span style="font-family:\'Cinzel\',serif;font-size:11px;letter-spacing:0.18em;font-weight:500;color:#1F4638;">NAMNVERKET</span>'
     '</a>'
+    '<nav style="display:flex;align-items:center;gap:20px;">'
+    '<a href="/blogg" style="font-size:12px;font-family:\'DM Sans\',sans-serif;color:#1F4638;text-decoration:none;opacity:0.7;">Blogg</a>'
     '<button id="nv-auth-btn" onclick="nvAuthKlick()" style="background:none;border:0.5px solid rgba(31,70,56,0.2);border-radius:999px;padding:5px 14px;font-size:12px;font-family:\'DM Sans\',sans-serif;color:#1F4638;cursor:pointer;white-space:nowrap;"></button>'
+    '</nav>'
     '</div>'
     '</header>'
     + _AUTH_SNIPPET
@@ -512,7 +546,10 @@ _NAVBAR_WIDE = (
     '<img src="/static/logo.svg" style="height:32px;" alt="Namnverket">'
     '<span style="font-family:\'Cinzel\',serif;font-size:11px;letter-spacing:0.18em;font-weight:500;color:#1F4638;">NAMNVERKET</span>'
     '</a>'
+    '<nav style="display:flex;align-items:center;gap:20px;">'
+    '<a href="/blogg" style="font-size:12px;font-family:\'DM Sans\',sans-serif;color:#1F4638;text-decoration:none;opacity:0.7;">Blogg</a>'
     '<button id="nv-auth-btn" onclick="nvAuthKlick()" style="background:none;border:0.5px solid rgba(31,70,56,0.2);border-radius:999px;padding:5px 14px;font-size:12px;font-family:\'DM Sans\',sans-serif;color:#1F4638;cursor:pointer;white-space:nowrap;"></button>'
+    '</nav>'
     '</div>'
     '</header>'
     + _AUTH_SNIPPET
@@ -4716,6 +4753,151 @@ def tack_begagnad():
     if email:
         resp.set_cookie('nk_email', email, max_age=60 * 60 * 24 * 365, samesite='Lax')
     return resp
+
+
+_BLOGG_BASE_STYLE = '''
+    <style>
+        :root {
+            --svart: #1F4638;
+            --primarGron: #1F4638;
+            --mellangron: #355D4D;
+            --bakgrund: #f5f0e8;
+            --text-sekunder: #1F4638;
+            --text-tertiar: #7a6e5f;
+            --border: rgba(31,70,56,0.12);
+            --yta: #ddeae2;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; max-width: 680px; margin: 0 auto 120px; padding: 0 24px; color: var(--svart); background: var(--bakgrund); }
+        h1, h2, h3 { font-family: 'Cinzel', serif; }
+        a { color: inherit; }
+        .back { font-size: 13px; color: var(--text-tertiar); text-decoration: none; display: inline-block; margin-bottom: 32px; }
+        .back:hover { color: var(--svart); }
+        @media (max-width: 600px) { body { padding: 0 16px; } }
+    </style>'''
+
+BLOGG_LISTA_HTML = '''<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Blogg — Namnverket</title>
+    <meta name="description" content="Tips, guider och tankar om företagsnamn, domäner och att starta bolag.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    ''' + _BLOGG_BASE_STYLE + '''
+    <style>
+        .blogg-rubrik { font-size: 28px; font-weight: 500; letter-spacing: 0.04em; margin: 0 0 8px; }
+        .blogg-ingress { font-size: 15px; color: var(--text-tertiar); font-weight: 300; margin-bottom: 40px; }
+        .inlagg-lista { display: flex; flex-direction: column; gap: 0; }
+        .inlagg-kort {
+            padding: 24px 0;
+            border-bottom: 0.5px solid var(--border);
+            text-decoration: none;
+            color: var(--svart);
+            display: block;
+        }
+        .inlagg-kort:first-child { border-top: 0.5px solid var(--border); }
+        .inlagg-kort:hover .inlagg-titel { text-decoration: underline; text-underline-offset: 3px; }
+        .inlagg-datum { font-size: 12px; color: var(--text-tertiar); margin-bottom: 6px; letter-spacing: 0.04em; }
+        .inlagg-titel { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 500; letter-spacing: 0.03em; margin-bottom: 8px; }
+        .inlagg-beskrivning { font-size: 14px; color: var(--text-tertiar); line-height: 1.65; font-weight: 300; }
+        .las-mer { font-size: 13px; color: var(--text-tertiar); margin-top: 10px; display: inline-block; }
+        .tom { font-size: 15px; color: var(--text-tertiar); padding: 40px 0; }
+    </style>
+</head>
+<body>
+    ''' + _NAVBAR + '''
+    <main>
+        <h1 class="blogg-rubrik">Blogg</h1>
+        <p class="blogg-ingress">Tips, guider och tankar om namn, domäner och det mesta däremellan.</p>
+        <div class="inlagg-lista">
+        {% for inlagg in inlagg_lista %}
+            <a href="/blogg/{{ inlagg.slug }}" class="inlagg-kort">
+                <div class="inlagg-datum">{{ inlagg.datum }}</div>
+                <div class="inlagg-titel">{{ inlagg.titel }}</div>
+                <div class="inlagg-beskrivning">{{ inlagg.beskrivning }}</div>
+                <span class="las-mer">Läs mer →</span>
+            </a>
+        {% else %}
+            <p class="tom">Inga inlägg ännu.</p>
+        {% endfor %}
+        </div>
+    </main>
+</body>
+</html>'''
+
+BLOGG_INLAGG_HTML = '''<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ titel }} — Namnverket</title>
+    <meta name="description" content="{{ beskrivning }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    ''' + _BLOGG_BASE_STYLE + '''
+    <style>
+        .artikel-datum { font-size: 12px; color: var(--text-tertiar); letter-spacing: 0.04em; margin-bottom: 12px; }
+        .artikel-rubrik { font-size: 30px; font-weight: 500; letter-spacing: 0.04em; line-height: 1.25; margin: 0 0 36px; }
+        .artikel-kropp { font-size: 16px; line-height: 1.85; font-weight: 300; color: var(--svart); }
+        .artikel-kropp h2 { font-size: 20px; font-weight: 500; margin: 2em 0 0.6em; letter-spacing: 0.03em; }
+        .artikel-kropp p { margin: 0 0 1.2em; }
+        .artikel-kropp a { border-bottom: 0.5px solid rgba(31,70,56,0.35); text-decoration: none; }
+        .artikel-kropp a:hover { border-color: var(--svart); }
+        .artikel-kropp code {
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 13px; background: rgba(31,70,56,0.07);
+            padding: 2px 6px; border-radius: 4px;
+        }
+        .artikel-kropp pre {
+            background: rgba(31,70,56,0.07); border-radius: 8px;
+            padding: 16px 20px; overflow-x: auto; margin: 1.5em 0;
+        }
+        .artikel-kropp pre code { background: none; padding: 0; font-size: 13px; }
+        .artikel-kropp ul, .artikel-kropp ol { padding-left: 1.4em; margin: 0 0 1.2em; }
+        .artikel-kropp li { margin-bottom: 0.4em; }
+        @media (max-width: 600px) { .artikel-rubrik { font-size: 24px; } }
+    </style>
+</head>
+<body>
+    ''' + _NAVBAR + '''
+    <main>
+        <a class="back" href="/blogg">← Blogg</a>
+        <div class="artikel-datum">{{ datum }}</div>
+        <h1 class="artikel-rubrik">{{ titel }}</h1>
+        <article class="artikel-kropp">{{ kropp | safe }}</article>
+    </main>
+</body>
+</html>'''
+
+
+@app.route('/blogg')
+def blogg_lista():
+    return render_template_string(BLOGG_LISTA_HTML, inlagg_lista=_las_alla_inlagg())
+
+@app.route('/blogg/<slug>')
+def blogg_inlagg(slug):
+    inlagg = _las_inlagg(slug)
+    if inlagg is None:
+        return render_template_string(
+            '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>404</title></head>'
+            '<body style="font-family:DM Sans,sans-serif;padding:40px;background:#f5f0e8;color:#1F4638;">'
+            '<p>Inlägget hittades inte. <a href="/blogg">← Tillbaka till bloggen</a></p></body></html>'
+        ), 404
+    kropp = _markdown.markdown(
+        inlagg['innehall'],
+        extensions=['fenced_code', 'nl2br']
+    )
+    return render_template_string(
+        BLOGG_INLAGG_HTML,
+        titel=inlagg['titel'],
+        datum=inlagg['datum'],
+        beskrivning=inlagg['beskrivning'],
+        kropp=kropp,
+    )
 
 
 @app.route('/sitemap.xml')
