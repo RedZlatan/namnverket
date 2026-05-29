@@ -523,6 +523,14 @@ HTML = '''
 <!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='30' fill='%231F4638'/><rect x='13' y='46' width='38' height='4' fill='%23E9F2EC'/><rect x='16' y='42' width='32' height='4' fill='%23E9F2EC'/><rect x='18' y='25' width='4' height='17' fill='%23E9F2EC'/><rect x='25' y='25' width='4' height='17' fill='%23E9F2EC'/><rect x='33' y='25' width='4' height='17' fill='%23E9F2EC'/><rect x='40' y='25' width='4' height='17' fill='%23E9F2EC'/><rect x='15' y='21' width='34' height='4' fill='%23E9F2EC'/><polygon points='13,21 32,11 51,21' fill='%23E9F2EC'/><rect x='28' y='34' width='8' height='8' fill='%231F4638'/></svg>">
@@ -1749,6 +1757,14 @@ def analys():
 GENERATOR_HTML = '''<!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Namnkonfigurator — Hitta rätt företagsnamn | Namnverket</title>
@@ -2442,6 +2458,14 @@ def slumpa():
 FAVORITER_HTML = '''<!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Favoriter &mdash; Namnverket</title>
@@ -2938,6 +2962,14 @@ def kop(paket):
 KOPA_DOMAN_LANDING_HTML = '''<!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Registrera din domän — Namnverket</title>
@@ -3196,6 +3228,14 @@ TACK_HTML = '''
 <!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tack &mdash; Namnverket</title>
@@ -3264,6 +3304,14 @@ TACK_DOMAN_HTML = '''
 <!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% if ok %}{{ doman }} är din{% else %}Betalning mottagen{% endif %} &mdash; Namnverket</title>
@@ -3494,6 +3542,14 @@ _SIDA_CSS = '''
 TRENDER_HTML = '''<!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Trender — Heta branscher och nyregistreringar | Namnverket</title>
@@ -3595,6 +3651,14 @@ TRENDER_HTML = '''<!DOCTYPE html>
 DOMANMARKNADEN_HTML = '''<!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Domänmarknaden — Köp och sälj domäner | Namnverket</title>
@@ -3850,6 +3914,14 @@ _CONTENT_CSS = '''        :root { --svart: #1F4638; --primarGron: #1F4638; --mel
 KOLLA_FORETAGSNAMN_HTML = f'''<!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Kolla om ett företagsnamn är ledigt — Namnverket</title>
@@ -3912,6 +3984,14 @@ KOLLA_FORETAGSNAMN_HTML = f'''<!DOCTYPE html>
 REGISTRERA_DOMAN_HTML = f'''<!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Registrera en .se-domän — Namnverket</title>
@@ -3976,6 +4056,14 @@ REGISTRERA_DOMAN_HTML = f'''<!DOCTYPE html>
 VAD_AR_VARUMARKE_HTML = f'''<!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){{dataLayer.push(arguments);}}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vad är ett varumärke och hur skyddar du ditt? — Namnverket</title>
@@ -4076,6 +4164,14 @@ _MARKETPLACE_CSS = _SIDA_CSS + '''
 SALJ_HTML = '''<!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sälj din domän — Namnverket</title>
@@ -4227,6 +4323,14 @@ SALJ_HTML = '''<!DOCTYPE html>
 MARKNADSPLATS_HTML = '''<!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Domäner till salu — Andrahandsmarknad | Namnverket</title>
@@ -4347,6 +4451,14 @@ MARKNADSPLATS_HTML = '''<!DOCTYPE html>
 TACK_BEGAGNAD_HTML = '''<!DOCTYPE html>
 <html lang="sv">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y135M17GZK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y135M17GZK');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% if ok %}{{ doman }} är din{% else %}Betalning mottagen{% endif %} — Namnverket</title>
