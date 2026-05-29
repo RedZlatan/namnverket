@@ -453,26 +453,69 @@ def _nya_bolag(limit=6):
 threading.Thread(target=_hämta_trender, daemon=True).start()
 
 # ── Delad design ──────────────────────────────────────────────────────────────
+_AUTH_SNIPPET = (
+    '<div id="nv-login-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:9000;align-items:center;justify-content:center;">'
+    '<div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:340px;margin:0 24px;box-sizing:border-box;">'
+    '<h3 style="font-size:17px;font-weight:500;margin:0 0 6px;font-family:\'Cinzel\',serif;color:#1F4638;">Logga in</h3>'
+    '<p style="font-size:13px;color:#1F4638;margin:0 0 16px;font-family:\'DM Sans\',sans-serif;">Ange din e-post för att koppla tokens till ditt konto.</p>'
+    '<input type="email" id="nv-email-input" placeholder="din@email.se" style="width:100%;height:44px;padding:0 12px;font-size:14px;font-family:\'DM Sans\',sans-serif;border:0.5px solid rgba(0,0,0,0.15);border-radius:8px;outline:none;box-sizing:border-box;color:#1F4638;" />'
+    '<div style="display:flex;gap:8px;margin-top:12px;">'
+    '<button onclick="nvAvbryt()" style="flex:1;height:40px;border-radius:8px;font-size:13px;font-family:\'DM Sans\',sans-serif;font-weight:500;cursor:pointer;border:none;background:#e8e0d8;color:#1F4638;">Avbryt</button>'
+    '<button onclick="nvLoggaIn()" style="flex:1;height:40px;border-radius:8px;font-size:13px;font-family:\'DM Sans\',sans-serif;font-weight:500;cursor:pointer;border:none;background:#1F4638;color:#f5f0e8;">Logga in</button>'
+    '</div>'
+    '</div>'
+    '</div>'
+    '<script>'
+    '(function(){'
+    'function nvCookie(n){var m=document.cookie.match("(?:^|;)\\\\s*"+n+"=([^;]*)");return m?decodeURIComponent(m[1]):null;}'
+    'function nvUppdatera(){'
+    '  var btn=document.getElementById("nv-auth-btn");if(!btn)return;'
+    '  if(nvCookie("nk_email")){btn.textContent="Logga ut";}'
+    '  else{btn.textContent="Logga in";}'
+    '}'
+    'window.nvAuthKlick=function(){'
+    '  if(nvCookie("nk_email")){document.cookie="nk_email=;expires=Thu,01 Jan 1970 00:00:01 GMT;path=/;SameSite=Lax";location.reload();}'
+    '  else{document.getElementById("nv-login-modal").style.display="flex";setTimeout(function(){document.getElementById("nv-email-input").focus();},80);}'
+    '};'
+    'window.nvLoggaIn=function(){'
+    '  var e=document.getElementById("nv-email-input").value.trim();'
+    '  if(!e||!e.includes("@"))return;'
+    '  var d=new Date();d.setTime(d.getTime()+365*24*60*60*1000);'
+    '  document.cookie="nk_email="+encodeURIComponent(e)+";expires="+d.toUTCString()+";path=/;SameSite=Lax";'
+    '  location.reload();'
+    '};'
+    'window.nvAvbryt=function(){document.getElementById("nv-login-modal").style.display="none";};'
+    'var inp=document.getElementById("nv-email-input");'
+    'if(inp)inp.addEventListener("keydown",function(e){if(e.key==="Enter")window.nvLoggaIn();});'
+    'nvUppdatera();'
+    '})();'
+    '</script>'
+)
+
 _NAVBAR = (
-    '<header style="background:#f5f0e8;padding:0 24px;margin:0 -24px 48px;">'
+    '<header style="background:#f5f0e8;padding:0 24px;margin:0 -24px 40px;border-bottom:1px solid rgba(31,70,56,0.08);">'
     '<div style="max-width:580px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;height:56px;">'
     '<a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;">'
-    '<img src="/static/logo.svg" style="height:36px;" alt="Namnverket">'
+    '<img src="/static/logo.svg" style="height:32px;" alt="Namnverket">'
     '<span style="font-family:\'Cinzel\',serif;font-size:11px;letter-spacing:0.18em;font-weight:500;color:#1F4638;">NAMNVERKET</span>'
     '</a>'
+    '<button id="nv-auth-btn" onclick="nvAuthKlick()" style="background:none;border:0.5px solid rgba(31,70,56,0.2);border-radius:999px;padding:5px 14px;font-size:12px;font-family:\'DM Sans\',sans-serif;color:#1F4638;cursor:pointer;white-space:nowrap;"></button>'
     '</div>'
     '</header>'
+    + _AUTH_SNIPPET
 )
 
 _NAVBAR_WIDE = (
-    '<header style="background:#f5f0e8;padding:0 24px;margin:0 -24px 48px;">'
+    '<header style="background:#f5f0e8;padding:0 24px;margin:0 -24px 40px;border-bottom:1px solid rgba(31,70,56,0.08);">'
     '<div style="max-width:620px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;height:56px;">'
     '<a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;">'
-    '<img src="/static/logo.svg" style="height:36px;" alt="Namnverket">'
+    '<img src="/static/logo.svg" style="height:32px;" alt="Namnverket">'
     '<span style="font-family:\'Cinzel\',serif;font-size:11px;letter-spacing:0.18em;font-weight:500;color:#1F4638;">NAMNVERKET</span>'
     '</a>'
+    '<button id="nv-auth-btn" onclick="nvAuthKlick()" style="background:none;border:0.5px solid rgba(31,70,56,0.2);border-radius:999px;padding:5px 14px;font-size:12px;font-family:\'DM Sans\',sans-serif;color:#1F4638;cursor:pointer;white-space:nowrap;"></button>'
     '</div>'
     '</header>'
+    + _AUTH_SNIPPET
 )
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -551,13 +594,13 @@ HTML = '''
     </script>
     <style>
         :root {
-            --svart: #0F2A22;
+            --svart: #1F4638;
             --primarGron: #1F4638;
             --mellangron: #355D4D;
             --ljusgron: #A9C5B1;
             --bakgrund: #f5f0e8;
-            --text-sekunder: #355D4D;
-            --text-tertiar: #7A9E8E;
+            --text-sekunder: #1F4638;
+            --text-tertiar: #1F4638;
             --border: rgba(31,70,56,0.12);
             --gron: #1F4638;
             --rod: #dc2626;
@@ -624,6 +667,17 @@ HTML = '''
         .paket-kop { border: none; background: var(--primarGron); color: var(--bakgrund); border-radius: 100px; padding: 7px 18px; font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; }
         .paket-kop:hover { background: #1a1a1a; }
         .modal-stang { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-tertiar); line-height: 1; padding: 0; margin-top: -4px; }
+        .email-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 200; align-items: center; justify-content: center; }
+        .email-modal-overlay.open { display: flex; }
+        .email-modal { background: #fff; border-radius: 16px; padding: 28px; width: 100%; max-width: 360px; margin: 0 24px; }
+        .email-modal h3 { font-size: 17px; font-weight: 500; margin-bottom: 6px; }
+        .email-modal .em-sub { font-size: 13px; color: var(--text-sekunder); margin-bottom: 16px; }
+        .email-modal input[type=email] { width: 100%; height: 44px; padding: 0 12px; font-size: 14px; font-family: 'DM Sans', sans-serif; border: 0.5px solid rgba(0,0,0,0.15); border-radius: 8px; outline: none; color: var(--svart); background: #fff; }
+        .email-modal input[type=email]:focus { border-color: var(--mellangron); }
+        .email-modal-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .email-modal-actions button { flex: 1; height: 40px; border-radius: 8px; font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; border: none; }
+        .em-spara { background: var(--svart); color: #fff; }
+        .em-avbryt { background: var(--yta); color: var(--svart); }
         .market-rad { font-size: 13px; color: var(--text-sekunder); padding: 8px 0 10px; border-bottom: 0.5px solid var(--border); }
         .market-link { color: var(--svart); font-weight: 500; text-decoration: none; border-bottom: 0.5px solid rgba(0,0,0,0.2); padding-bottom: 1px; }
         .market-link:hover { border-color: var(--svart); }
@@ -655,7 +709,7 @@ HTML = '''
             .input-rad { flex-direction: column; gap: 8px; }
             .input-rad input { width: 100%; height: 52px; min-height: 52px; font-size: 16px; padding: 14px 16px; box-sizing: border-box; }
             .input-rad button { width: 100%; height: 52px; }
-            .slumpa-btn { width: 100%; height: 52px; background: transparent; color: #0a0a0a; border: 0.5px solid rgba(0,0,0,0.3); }
+            .slumpa-btn { width: 100%; height: 52px; background: transparent; color: #1F4638; border: 0.5px solid rgba(0,0,0,0.3); }
 
             /* ── Funktionskort ── */
             .funktioner-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 1rem 0; }
@@ -675,27 +729,20 @@ HTML = '''
     <div id="splash" style="position:fixed;inset:0;z-index:9999;background:#f5f0e8;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
         <div style="text-align:center;max-width:400px;">
             <div style="margin-bottom:24px;"><img src="/static/logo.svg" style="width:130px;" alt="Namnverket"></div>
-            <h1 style="font-family:'Cinzel',serif;letter-spacing:0.18em;font-weight:500;font-size:26px;color:#0F2A22;margin:0 0 20px;">Namnverket</h1>
-            <p style="font-family:'DM Sans',sans-serif;font-size:15px;color:#355D4D;line-height:1.75;font-weight:300;margin:0 0 12px;">Vi hjälper dig hitta rätt namn för rätt sak. Ett namn kan vara så mycket — starten på något nytt, fortsättningen på något gammalt, eller ibland varken mer eller mindre än en bra investering.</p>
-            <p style="font-family:'DM Sans',sans-serif;font-size:12px;color:#A9C5B1;font-style:italic;margin:0 0 36px;">För effektiv för att vara en riktig myndighet.</p>
+            <h1 style="font-family:'Cinzel',serif;letter-spacing:0.18em;font-weight:500;font-size:26px;color:#1F4638;margin:0 0 20px;">Namnverket</h1>
+            <p style="font-family:'DM Sans',sans-serif;font-size:15px;color:#1F4638;line-height:1.75;font-weight:300;margin:0 0 12px;">Vi hjälper dig hitta rätt namn för rätt sak. Ett namn kan vara så mycket — starten på något nytt, fortsättningen på något gammalt, eller ibland varken mer eller mindre än en bra investering.</p>
+            <p style="font-family:'DM Sans',sans-serif;font-size:1rem;color:#1F4638;font-style:italic;margin:12px 0 36px;">För effektiv för att vara en riktig myndighet.</p>
             <button onclick="stangSplash()" style="background:#1F4638;color:#f5f0e8;border:none;border-radius:100px;padding:14px 36px;font-size:15px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;letter-spacing:0.01em;">Hitta ditt namn</button>
         </div>
     </div>
 
-    <header style="background:#f5f0e8;padding:0;margin:0 -24px 40px;">
-        <div style="max-width:580px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center;height:56px;">
-            <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;"><img src="/static/logo.svg" style="height:36px;" alt="Namnverket"><span style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.18em;font-weight:500;color:#1F4638;">NAMNVERKET</span></a>
-            <span id="token-visning-header" style="display:none;font-size:12px;color:#A9C5B1;cursor:pointer;" onclick="oppnaModal()">
-                <strong id="token-antal"></strong>&nbsp;tokens
-            </span>
-        </div>
-    </header>
+''' + _NAVBAR + '''
     <main>
     <h1>Hitta ett namn som faktiskt är ledigt.</h1>
     <p class="sub">Kolla bolagsnamn, domäner och varumärken i ett slag.</p>
     <div class="sok-sektion">
     <div class="input-rad">
-        <input type="text" id="namn" placeholder="t.ex. fiskbularna" />
+        <input type="text" id="namn" placeholder="t.ex. fiskbullar" />
         <button onclick="kolla()">kolla</button>
         <button class="slumpa-btn" onclick="slumpa()">slumpa →</button>
     </div>
@@ -834,10 +881,36 @@ HTML = '''
         </div>
     </div>
 
+    <div class="email-modal-overlay" id="email-modal-overlay">
+        <div class="email-modal">
+            <h3>Din e-post</h3>
+            <p class="em-sub">Ange din e-post för att fortsätta. Tokens kopplas till din adress.</p>
+            <input type="email" id="email-modal-input" placeholder="din@email.se" />
+            <div class="email-modal-actions">
+                <button class="em-avbryt" onclick="emailModalAvbryt()">Avbryt</button>
+                <button class="em-spara" onclick="emailModalSpara()">Fortsätt</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.getElementById('namn').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') kolla();
         });
+        document.getElementById('email-modal-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') emailModalSpara();
+        });
+        function emailModalSpara() {
+            var email = document.getElementById('email-modal-input').value.trim();
+            if (!email || !email.includes('@')) return;
+            var d = new Date(); d.setTime(d.getTime() + 365*24*60*60*1000);
+            document.cookie = 'nk_email=' + encodeURIComponent(email) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+            document.getElementById('email-modal-overlay').classList.remove('open');
+            document.getElementById('modal-overlay').classList.add('open');
+        }
+        function emailModalAvbryt() {
+            document.getElementById('email-modal-overlay').classList.remove('open');
+        }
 
         function renderMarkdown(text) {
             text = text.replace(/^## (.+)$/gm, '<h3>$1</h3>');
@@ -1216,10 +1289,14 @@ HTML = '''
         })();
 
         function oppnaModal() {
-            console.log('[oppnaModal] öppnar modal');
-            var el = document.getElementById('modal-overlay');
-            if (!el) { console.error('[oppnaModal] #modal-overlay hittades inte!'); return; }
-            el.classList.add('open');
+            var email = getCookieVal('nk_email');
+            if (!email) {
+                document.getElementById('email-modal-overlay').classList.add('open');
+                document.getElementById('email-modal-input').value = '';
+                setTimeout(function() { document.getElementById('email-modal-input').focus(); }, 80);
+            } else {
+                document.getElementById('modal-overlay').classList.add('open');
+            }
         }
 
         function stangModalDirekt() {
@@ -1689,13 +1766,13 @@ GENERATOR_HTML = '''<!DOCTYPE html>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --svart: #0F2A22;
+            --svart: #1F4638;
             --primarGron: #1F4638;
             --mellangron: #355D4D;
             --ljusgron: #A9C5B1;
             --bakgrund: #f5f0e8;
-            --text-sekunder: #355D4D;
-            --text-tertiar: #7A9E8E;
+            --text-sekunder: #1F4638;
+            --text-tertiar: #1F4638;
             --border: rgba(31,70,56,0.12);
             --yta: #ddeae2;
             --gron: #1F4638;
@@ -1965,7 +2042,7 @@ GENERATOR_HTML = '''<!DOCTYPE html>
     </div>
 
     <button class="gen" onclick="generera(false)">Generera förslag</button>
-    <span style="font-size:12px;color:#a0a0a0;margin-left:10px;">3 tokens</span>
+    <span style="font-size:12px;color:#1F4638;margin-left:10px;">3 tokens</span>
     <div id="resultat"></div>
 
     <div class="email-modal-overlay" id="email-modal-overlay">
@@ -2108,6 +2185,7 @@ GENERATOR_HTML = '''<!DOCTYPE html>
         }
 
         var _sparaPending = null;
+        var _tokenPending = false;
 
         async function spara(namn, btn) {
             var email = getCookie('nk_email');
@@ -2144,6 +2222,9 @@ GENERATOR_HTML = '''<!DOCTYPE html>
             if (_sparaPending) {
                 sparaMedEmail(_sparaPending.namn, email, _sparaPending.btn);
                 _sparaPending = null;
+            } else if (_tokenPending) {
+                _tokenPending = false;
+                document.getElementById('modal-overlay').classList.add('open');
             }
         }
 
@@ -2262,7 +2343,15 @@ GENERATOR_HTML = '''<!DOCTYPE html>
         }
 
         function oppnaModal() {
-            document.getElementById('modal-overlay').classList.add('open');
+            var email = getCookie('nk_email');
+            if (!email) {
+                _tokenPending = true;
+                document.getElementById('email-modal-overlay').classList.add('open');
+                document.getElementById('email-modal-input').value = '';
+                setTimeout(function() { document.getElementById('email-modal-input').focus(); }, 80);
+            } else {
+                document.getElementById('modal-overlay').classList.add('open');
+            }
         }
         function stangModalDirekt() {
             document.getElementById('modal-overlay').classList.remove('open');
@@ -2300,14 +2389,14 @@ GENERATOR_HTML = '''<!DOCTYPE html>
             </div>
         </div>
     </div>
-    <footer style="margin-top:56px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#a0a0a0;line-height:2.4;">
-      <a href="/" style="color:#a0a0a0;text-decoration:none;">Namnkoll</a> &middot;
-      <a href="/generator" style="color:#a0a0a0;text-decoration:none;">Namnkonfigurator</a> &middot;
-      <a href="/trender" style="color:#a0a0a0;text-decoration:none;">Trender</a> &middot;
-      <a href="/domanmarknaden" style="color:#a0a0a0;text-decoration:none;">Domänmarknaden</a> &middot;
-      <a href="/marknadsplats" style="color:#a0a0a0;text-decoration:none;">Marknadsplats</a> &middot;
-      <a href="/salj" style="color:#a0a0a0;text-decoration:none;">Sälj domän</a> &middot;
-      <a href="/kolla-foretagsnamn" style="color:#a0a0a0;text-decoration:none;">Guide</a>
+    <footer style="margin-top:56px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#1F4638;line-height:2.4;">
+      <a href="/" style="color:#1F4638;text-decoration:none;">Namnkoll</a> &middot;
+      <a href="/generator" style="color:#1F4638;text-decoration:none;">Namnkonfigurator</a> &middot;
+      <a href="/trender" style="color:#1F4638;text-decoration:none;">Trender</a> &middot;
+      <a href="/domanmarknaden" style="color:#1F4638;text-decoration:none;">Domänmarknaden</a> &middot;
+      <a href="/marknadsplats" style="color:#1F4638;text-decoration:none;">Marknadsplats</a> &middot;
+      <a href="/salj" style="color:#1F4638;text-decoration:none;">Sälj domän</a> &middot;
+      <a href="/kolla-foretagsnamn" style="color:#1F4638;text-decoration:none;">Guide</a>
     </footer>
     </main>
 </body>
@@ -2365,13 +2454,13 @@ FAVORITER_HTML = '''<!DOCTYPE html>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
         :root {
-            --svart: #0F2A22;
+            --svart: #1F4638;
             --primarGron: #1F4638;
             --mellangron: #355D4D;
             --ljusgron: #A9C5B1;
             --bakgrund: #f5f0e8;
-            --text-sekunder: #355D4D;
-            --text-tertiar: #7A9E8E;
+            --text-sekunder: #1F4638;
+            --text-tertiar: #1F4638;
             --border: rgba(31,70,56,0.12);
             --yta: #ddeae2;
             --rod: #dc2626;
@@ -2503,7 +2592,7 @@ FAVORITER_HTML = '''<!DOCTYPE html>
                 var r = await fetch(\'/generera-favoriter\');
                 var d = await r.json();
                 if (r.status === 402 || (d.error && d.error.toLowerCase().includes(\'token\'))) {
-                    lista.innerHTML = \'<p style="font-size:13px;color:var(--text-tertiar);">Du behöver tokens. <a href="/kop/bas" style="color:#0a0a0a;">Köp 50 tokens för 19 kr →</a></p>\';
+                    lista.innerHTML = \'<p style="font-size:13px;color:var(--text-tertiar);">Du behöver tokens. <a href="/kop/bas" style="color:#1F4638;">Köp 50 tokens för 19 kr →</a></p>\';
                 } else if (d.error) {
                     lista.innerHTML = \'<p style="font-size:13px;color:#dc2626;">\' + d.error + \'</p>\';
                 } else {
@@ -2546,12 +2635,12 @@ FAVORITER_HTML = '''<!DOCTYPE html>
 
         async function laddaRadar() {
             var box = document.getElementById(\'radar-box\');
-            box.innerHTML = \'<p class="laddar">analyserar namnprofil... <span style="font-size:11px;color:#a0a0a0;">(2 tokens)</span></p>\';
+            box.innerHTML = \'<p class="laddar">analyserar namnprofil... <span style="font-size:11px;color:#1F4638;">(2 tokens)</span></p>\';
             try {
                 var r = await fetch(\'/analysera_favoriter\');
                 var d = await r.json();
                 if (r.status === 402 || (d.error && d.error.toLowerCase().includes(\'token\'))) {
-                    box.innerHTML = \'<p style="font-size:13px;color:var(--text-tertiar);">Du behöver tokens för namnprofilen. <a href="/kop/bas" style="color:#0a0a0a;">Köp 50 tokens för 19 kr →</a></p>\';
+                    box.innerHTML = \'<p style="font-size:13px;color:var(--text-tertiar);">Du behöver tokens för namnprofilen. <a href="/kop/bas" style="color:#1F4638;">Köp 50 tokens för 19 kr →</a></p>\';
                     return;
                 }
                 if (d.error) {
@@ -2792,7 +2881,7 @@ Svara ENDAST med en JSON-array med exakt 10 strängar, inga förklaringar:
 def test_op():
     try:
         token = get_op_token()
-        payload = {'domains': [{'name': 'fiskbularna', 'extension': 'se'}], 'with_price': True}
+        payload = {'domains': [{'name': 'fiskbullar', 'extension': 'se'}], 'with_price': True}
         r = requests.post(
             'https://api.openprovider.eu/v1beta/domains/check',
             headers={'Authorization': f'Bearer {token}'},
@@ -2807,7 +2896,7 @@ def test_op():
         ledig = item.get('status') == 'free'
         price_block = (item.get('price') or {}).get('product') or {}
         return jsonify({
-            'doman': 'fiskbularna.se',
+            'doman': 'fiskbullar.se',
             'ledig': ledig,
             'status': item.get('status'),
             'pris': price_block.get('price'),
@@ -2881,13 +2970,13 @@ KOPA_DOMAN_LANDING_HTML = '''<!DOCTYPE html>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --svart: #0F2A22;
+            --svart: #1F4638;
             --primarGron: #1F4638;
             --mellangron: #355D4D;
             --ljusgron: #A9C5B1;
             --bakgrund: #f5f0e8;
-            --text-sekunder: #355D4D;
-            --text-tertiar: #7A9E8E;
+            --text-sekunder: #1F4638;
+            --text-tertiar: #1F4638;
             --border: rgba(31,70,56,0.12);
             --gron: #1F4638;
             --rod: #dc2626;
@@ -3115,7 +3204,7 @@ TACK_HTML = '''
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        :root { --svart: #0F2A22; --primarGron: #1F4638; --bakgrund: #f5f0e8; --text-sekunder: #355D4D; --text-tertiar: #7A9E8E; --border: rgba(31,70,56,0.12); }
+        :root { --svart: #1F4638; --primarGron: #1F4638; --bakgrund: #f5f0e8; --text-sekunder: #1F4638; --text-tertiar: #1F4638; --border: rgba(31,70,56,0.12); }
         *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'DM Sans', sans-serif; max-width: 580px; margin: 120px auto; padding: 0 24px; color: var(--svart); background: var(--bakgrund); text-align: center; }
         h1 { font-family: 'Cinzel', serif; font-size: 30px; font-weight: 500; letter-spacing: 0.04em; margin-bottom: 12px; }
@@ -3183,7 +3272,7 @@ TACK_DOMAN_HTML = '''
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        :root { --svart: #0F2A22; --primarGron: #1F4638; --bakgrund: #f5f0e8; --text-sekunder: #355D4D; --text-tertiar: #7A9E8E; --border: rgba(31,70,56,0.12); }
+        :root { --svart: #1F4638; --primarGron: #1F4638; --bakgrund: #f5f0e8; --text-sekunder: #1F4638; --text-tertiar: #1F4638; --border: rgba(31,70,56,0.12); }
         *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'DM Sans', sans-serif; max-width: 580px; margin: 120px auto; padding: 0 24px; color: var(--svart); background: var(--bakgrund); text-align: center; }
         h1 { font-family: 'Cinzel', serif; font-size: 30px; font-weight: 500; letter-spacing: 0.04em; margin-bottom: 16px; }
@@ -3354,42 +3443,42 @@ def analysera_favoriter():
 
 _SIDA_CSS = '''
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'DM Sans', sans-serif; max-width: 620px; margin: 80px auto 120px; padding: 0 24px; color: #0F2A22; background: #f5f0e8; }
+        body { font-family: 'DM Sans', sans-serif; max-width: 620px; margin: 80px auto 120px; padding: 0 24px; color: #1F4638; background: #f5f0e8; }
         .logo { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.18em; color: #1F4638; margin-bottom: 2rem; font-weight: 500; }
-        .back { font-size: 13px; color: #7A9E8E; text-decoration: none; display: inline-block; margin-bottom: 28px; }
-        .back:hover { color: #0F2A22; }
-        h1 { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 500; letter-spacing: 0.04em; line-height: 1.25; margin-bottom: 8px; color: #0F2A22; }
-        .sub { font-size: 15px; color: #355D4D; margin-bottom: 40px; font-weight: 300; }
+        .back { font-size: 13px; color: #1F4638; text-decoration: none; display: inline-block; margin-bottom: 28px; }
+        .back:hover { color: #1F4638; }
+        h1 { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 500; letter-spacing: 0.04em; line-height: 1.25; margin-bottom: 8px; color: #1F4638; }
+        .sub { font-size: 15px; color: #1F4638; margin-bottom: 40px; font-weight: 300; }
         .sektion { margin-bottom: 48px; }
-        .sektion-rubrik { font-size: 11px; letter-spacing: 0.12em; color: #a0a0a0; margin-bottom: 16px; font-weight: 400; }
+        .sektion-rubrik { font-size: 11px; letter-spacing: 0.12em; color: #1F4638; margin-bottom: 16px; font-weight: 400; }
         .rad-lista { list-style: none; padding: 0; margin: 0; }
         .rad-lista li { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-bottom: 0.5px solid rgba(0,0,0,0.08); font-size: 14px; }
         .rad-lista li:first-child { border-top: 0.5px solid rgba(0,0,0,0.08); }
-        .antal { font-size: 13px; color: #a0a0a0; }
+        .antal { font-size: 13px; color: #1F4638; }
         .pil-upp { color: #16a34a; font-size: 16px; margin-left: 6px; }
         .pil-ned { color: #dc2626; font-size: 16px; margin-left: 6px; }
-        .pil-flat { color: #a0a0a0; font-size: 16px; margin-left: 6px; }
+        .pil-flat { color: #1F4638; font-size: 16px; margin-left: 6px; }
         .bar { height: 4px; background: #f0f0f0; border-radius: 2px; width: 80px; display: inline-block; vertical-align: middle; margin-left: 8px; }
         .bar-fill { height: 4px; background: #0a0a0a; border-radius: 2px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th { text-align: left; font-size: 11px; letter-spacing: 0.08em; color: #a0a0a0; font-weight: 400; padding: 0 0 10px; border-bottom: 0.5px solid rgba(0,0,0,0.08); }
-        td { padding: 11px 0; border-bottom: 0.5px solid rgba(0,0,0,0.08); vertical-align: top; color: #4a4a4a; }
-        td:first-child { color: #0a0a0a; font-weight: 500; }
+        th { text-align: left; font-size: 11px; letter-spacing: 0.08em; color: #1F4638; font-weight: 400; padding: 0 0 10px; border-bottom: 0.5px solid rgba(0,0,0,0.08); }
+        td { padding: 11px 0; border-bottom: 0.5px solid rgba(0,0,0,0.08); vertical-align: top; color: #1F4638; }
+        td:first-child { color: #1F4638; font-weight: 500; }
         .pris-cell { color: #16a34a; font-weight: 500; }
-        .tom { font-size: 13px; color: #a0a0a0; padding: 16px 0; }
+        .tom { font-size: 13px; color: #1F4638; padding: 16px 0; }
         .estimator { margin-top: 0; }
         .est-rad { display: flex; gap: 8px; }
-        .est-input { flex: 1; height: 44px; padding: 0 12px; font-size: 14px; font-family: 'Inter', sans-serif; border: 0.5px solid rgba(0,0,0,0.15); border-radius: 8px; outline: none; color: #0a0a0a; background: #fff; }
+        .est-input { flex: 1; height: 44px; padding: 0 12px; font-size: 14px; font-family: 'Inter', sans-serif; border: 0.5px solid rgba(0,0,0,0.15); border-radius: 8px; outline: none; color: #1F4638; background: #fff; }
         .est-input:focus { border-color: rgba(0,0,0,0.3); }
         .est-btn { height: 44px; padding: 0 20px; background: #0a0a0a; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; }
         .est-btn:hover { background: #1a1a1a; }
         .est-btn:disabled { background: #a0a0a0; cursor: not-allowed; }
-        #est-resultat { margin-top: 16px; font-size: 14px; color: #4a4a4a; line-height: 1.7; }
-        .est-varde { font-size: 20px; font-weight: 500; color: #0a0a0a; margin-bottom: 6px; }
+        #est-resultat { margin-top: 16px; font-size: 14px; color: #1F4638; line-height: 1.7; }
+        .est-varde { font-size: 20px; font-weight: 500; color: #1F4638; margin-bottom: 6px; }
         .fakta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         .fakta-ruta { border: 0.5px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 18px 16px; background: #f9f9f8; }
         .fakta-varde { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; margin-bottom: 6px; }
-        .fakta-text { font-size: 12px; color: #6b6b6b; line-height: 1.55; }
+        .fakta-text { font-size: 12px; color: #1F4638; line-height: 1.55; }
         @media (max-width: 600px) {
             body { padding: 0 16px; margin-top: 40px; }
             h1 { font-size: 26px; }
@@ -3490,14 +3579,14 @@ TRENDER_HTML = '''<!DOCTYPE html>
         <p class="tom">Data inte tillgänglig.</p>
         {% endif %}
     </div>
-    <footer style="margin-top:48px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#a0a0a0;line-height:2.4;">
-      <a href="/" style="color:#a0a0a0;text-decoration:none;">Namnkoll</a> &middot;
-      <a href="/generator" style="color:#a0a0a0;text-decoration:none;">Namnkonfigurator</a> &middot;
-      <a href="/trender" style="color:#a0a0a0;text-decoration:none;">Trender</a> &middot;
-      <a href="/domanmarknaden" style="color:#a0a0a0;text-decoration:none;">Domänmarknaden</a> &middot;
-      <a href="/marknadsplats" style="color:#a0a0a0;text-decoration:none;">Marknadsplats</a> &middot;
-      <a href="/salj" style="color:#a0a0a0;text-decoration:none;">Sälj domän</a> &middot;
-      <a href="/kolla-foretagsnamn" style="color:#a0a0a0;text-decoration:none;">Guide</a>
+    <footer style="margin-top:48px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#1F4638;line-height:2.4;">
+      <a href="/" style="color:#1F4638;text-decoration:none;">Namnkoll</a> &middot;
+      <a href="/generator" style="color:#1F4638;text-decoration:none;">Namnkonfigurator</a> &middot;
+      <a href="/trender" style="color:#1F4638;text-decoration:none;">Trender</a> &middot;
+      <a href="/domanmarknaden" style="color:#1F4638;text-decoration:none;">Domänmarknaden</a> &middot;
+      <a href="/marknadsplats" style="color:#1F4638;text-decoration:none;">Marknadsplats</a> &middot;
+      <a href="/salj" style="color:#1F4638;text-decoration:none;">Sälj domän</a> &middot;
+      <a href="/kolla-foretagsnamn" style="color:#1F4638;text-decoration:none;">Guide</a>
     </footer>
     </main>
 </body>
@@ -3538,12 +3627,12 @@ DOMANMARKNADEN_HTML = '''<!DOCTYPE html>
             <tr>
                 <td>{{ d.doman }}</td>
                 <td class="pris-cell">{{ d.sek }}&nbsp;kr</td>
-                <td style="color:#a0a0a0;">{{ d.ar }}</td>
+                <td style="color:#1F4638;">{{ d.ar }}</td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
-        <p style="font-size:11px;color:#a0a0a0;margin-top:10px;">Priser omräknade till SEK (×10.5). Källa: DNJournal &amp; Wikipedia.</p>
+        <p style="font-size:11px;color:#1F4638;margin-top:10px;">Priser omräknade till SEK (×10.5). Källa: DNJournal &amp; Wikipedia.</p>
     </div>
 
     <div class="sektion">
@@ -3569,18 +3658,18 @@ DOMANMARKNADEN_HTML = '''<!DOCTYPE html>
         <div class="est-rad">
             <input class="est-input" type="text" id="est-input" placeholder="mittforetag.se" autocomplete="off" />
             <button class="est-btn" id="est-btn" onclick="estimera()">Estimera →</button>
-            <span style="font-size:12px;color:#a0a0a0;white-space:nowrap;">1 token</span>
+            <span style="font-size:12px;color:#1F4638;white-space:nowrap;">1 token</span>
         </div>
         <div id="est-resultat"></div>
     </div>
-    <footer style="margin-top:48px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#a0a0a0;line-height:2.4;">
-      <a href="/" style="color:#a0a0a0;text-decoration:none;">Namnkoll</a> &middot;
-      <a href="/generator" style="color:#a0a0a0;text-decoration:none;">Namnkonfigurator</a> &middot;
-      <a href="/trender" style="color:#a0a0a0;text-decoration:none;">Trender</a> &middot;
-      <a href="/domanmarknaden" style="color:#a0a0a0;text-decoration:none;">Domänmarknaden</a> &middot;
-      <a href="/marknadsplats" style="color:#a0a0a0;text-decoration:none;">Marknadsplats</a> &middot;
-      <a href="/salj" style="color:#a0a0a0;text-decoration:none;">Sälj domän</a> &middot;
-      <a href="/kolla-foretagsnamn" style="color:#a0a0a0;text-decoration:none;">Guide</a>
+    <footer style="margin-top:48px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#1F4638;line-height:2.4;">
+      <a href="/" style="color:#1F4638;text-decoration:none;">Namnkoll</a> &middot;
+      <a href="/generator" style="color:#1F4638;text-decoration:none;">Namnkonfigurator</a> &middot;
+      <a href="/trender" style="color:#1F4638;text-decoration:none;">Trender</a> &middot;
+      <a href="/domanmarknaden" style="color:#1F4638;text-decoration:none;">Domänmarknaden</a> &middot;
+      <a href="/marknadsplats" style="color:#1F4638;text-decoration:none;">Marknadsplats</a> &middot;
+      <a href="/salj" style="color:#1F4638;text-decoration:none;">Sälj domän</a> &middot;
+      <a href="/kolla-foretagsnamn" style="color:#1F4638;text-decoration:none;">Guide</a>
     </footer>
     </main>
 
@@ -3595,12 +3684,12 @@ DOMANMARKNADEN_HTML = '''<!DOCTYPE html>
             var res = document.getElementById(\'est-resultat\');
             btn.disabled = true;
             btn.textContent = \'Analyserar...\';
-            res.innerHTML = \'<p style="color:#a0a0a0;font-size:13px;">Claude analyserar din domän&hellip;</p>\';
+            res.innerHTML = \'<p style="color:#1F4638;font-size:13px;">Claude analyserar din domän&hellip;</p>\';
             try {
                 var r = await fetch(\'/estimera-doman?doman=\' + encodeURIComponent(doman));
                 var d = await r.json();
                 if (r.status === 402 || (d.error && d.error.toLowerCase().includes(\'token\'))) {
-                    res.innerHTML = \'<p style="font-size:13px;color:#6b6b6b;">Du behöver tokens för att estimera. <a href="/kop/bas" style="color:#0a0a0a;border-bottom:0.5px solid rgba(0,0,0,0.2);">Köp 50 tokens för 19 kr →</a></p>\';
+                    res.innerHTML = \'<p style="font-size:13px;color:#1F4638;">Du behöver tokens för att estimera. <a href="/kop/bas" style="color:#1F4638;border-bottom:0.5px solid rgba(0,0,0,0.2);">Köp 50 tokens för 19 kr →</a></p>\';
                 } else if (d.error) {
                     res.innerHTML = \'<p style="color:#dc2626;font-size:13px;">\' + d.error + \'</p>\';
                 } else {
@@ -3739,7 +3828,7 @@ _CONTENT_HEAD = '''    <link rel="preconnect" href="https://fonts.googleapis.com
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">'''
 
-_CONTENT_CSS = '''        :root { --svart: #0F2A22; --primarGron: #1F4638; --mellangron: #355D4D; --ljusgron: #A9C5B1; --bakgrund: #f5f0e8; --text-sekunder: #355D4D; --text-tertiar: #7A9E8E; --border: rgba(31,70,56,0.12); }
+_CONTENT_CSS = '''        :root { --svart: #1F4638; --primarGron: #1F4638; --mellangron: #355D4D; --ljusgron: #A9C5B1; --bakgrund: #f5f0e8; --text-sekunder: #1F4638; --text-tertiar: #1F4638; --border: rgba(31,70,56,0.12); }
         *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'DM Sans', sans-serif; max-width: 620px; margin: 0 auto 120px; padding: 0 24px; color: var(--svart); background: var(--bakgrund); }
         nav.bc { font-size: 12px; color: var(--text-tertiar); margin-bottom: 28px; }
@@ -3960,15 +4049,15 @@ def vad_ar_ett_varumarke():
 
 _MARKETPLACE_CSS = _SIDA_CSS + '''
         .form-group { margin-bottom: 20px; }
-        label { display: block; font-size: 12px; letter-spacing: 0.08em; color: #a0a0a0; margin-bottom: 6px; font-weight: 400; }
-        .form-input { width: 100%; height: 44px; padding: 0 12px; font-size: 14px; font-family: 'Inter', sans-serif; border: 0.5px solid rgba(0,0,0,0.15); border-radius: 8px; outline: none; color: #0a0a0a; background: #fff; }
+        label { display: block; font-size: 12px; letter-spacing: 0.08em; color: #1F4638; margin-bottom: 6px; font-weight: 400; }
+        .form-input { width: 100%; height: 44px; padding: 0 12px; font-size: 14px; font-family: 'Inter', sans-serif; border: 0.5px solid rgba(0,0,0,0.15); border-radius: 8px; outline: none; color: #1F4638; background: #fff; }
         .form-input:focus { border-color: rgba(0,0,0,0.3); }
         textarea.form-input { height: 88px; padding: 10px 12px; resize: vertical; }
         .submit-btn { height: 48px; padding: 0 28px; background: #0a0a0a; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; width: 100%; }
         .submit-btn:hover { background: #1a1a1a; }
         .info-lista { list-style: none; padding: 0; margin: 24px 0 0; }
-        .info-lista li { font-size: 13px; color: #6b6b6b; padding: 7px 0; border-bottom: 0.5px solid rgba(0,0,0,0.06); display: flex; align-items: center; gap: 10px; }
-        .info-lista li::before { content: "–"; color: #a0a0a0; }
+        .info-lista li { font-size: 13px; color: #1F4638; padding: 7px 0; border-bottom: 0.5px solid rgba(0,0,0,0.06); display: flex; align-items: center; gap: 10px; }
+        .info-lista li::before { content: "–"; color: #1F4638; }
         .fel-msg { color: #dc2626; font-size: 13px; margin-top: 12px; }
         .ok-msg { color: #16a34a; font-size: 14px; margin-top: 16px; padding: 14px; background: #f0fdf4; border-radius: 8px; }
         .sok-rad { display: flex; gap: 8px; margin-bottom: 24px; }
@@ -3976,12 +4065,12 @@ _MARKETPLACE_CSS = _SIDA_CSS + '''
         .sort-select { height: 40px; padding: 0 10px; font-size: 13px; font-family: 'Inter', sans-serif; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 8px; outline: none; background: #fff; cursor: pointer; }
         .kop-btn { display: inline-block; padding: 5px 14px; background: #0a0a0a; color: #fff; border-radius: 999px; font-size: 12px; font-family: 'Inter', sans-serif; font-weight: 500; text-decoration: none; white-space: nowrap; }
         .kop-btn:hover { background: #1a1a1a; }
-        .tom-msg { font-size: 14px; color: #a0a0a0; padding: 24px 0; text-align: center; }
+        .tom-msg { font-size: 14px; color: #1F4638; padding: 24px 0; text-align: center; }
         .paginering { display: flex; gap: 8px; margin-top: 24px; justify-content: center; }
         .sid-btn { padding: 6px 14px; border: 0.5px solid rgba(0,0,0,0.15); border-radius: 999px; font-size: 13px; font-family: 'Inter', sans-serif; background: none; cursor: pointer; }
-        .sid-btn.aktiv { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+        .sid-btn.aktiv { background: #0a0a0a; color: #fff; border-color: #1F4638; }
         .sid-btn:hover:not(.aktiv) { background: #f0f0f0; }
-        .besk-cell { font-size: 12px; color: #6b6b6b; }
+        .besk-cell { font-size: 12px; color: #1F4638; }
 '''
 
 SALJ_HTML = '''<!DOCTYPE html>
@@ -4019,7 +4108,7 @@ SALJ_HTML = '''<!DOCTYPE html>
             <input type="email" id="email" class="form-input" placeholder="du@exempel.se" />
         </div>
         <div class="form-group">
-            <label>BESKRIVNING <span style="font-size:11px;color:#c0c0c0;">(valfri)</span></label>
+            <label>BESKRIVNING <span style="font-size:11px;color:#1F4638;">(valfri)</span></label>
             <textarea id="beskrivning" class="form-input" placeholder="Varför är detta ett bra namn?"></textarea>
         </div>
         <button class="submit-btn" onclick="listaDoMan()">Lista domän →</button>
@@ -4029,13 +4118,13 @@ SALJ_HTML = '''<!DOCTYPE html>
 
     <div id="verifiering-box" style="display:none;">
         <p style="font-size:15px;font-weight:500;margin-bottom:8px;">Din domän behöver verifieras innan den listas.</p>
-        <p style="font-size:14px;color:#6b6b6b;margin-bottom:20px;">Lägg till följande TXT-post i din DNS:</p>
+        <p style="font-size:14px;color:#1F4638;margin-bottom:20px;">Lägg till följande TXT-post i din DNS:</p>
         <div style="background:#f9f9f8;border-radius:8px;padding:16px 18px;margin-bottom:20px;font-size:13px;">
-            <div><span style="color:#a0a0a0;">Namn:</span> @ (eller <span id="ver-doman"></span>)</div>
-            <div style="margin-top:6px;"><span style="color:#a0a0a0;">Typ:</span> TXT</div>
-            <div style="margin-top:6px;"><span style="color:#a0a0a0;">Värde:</span> <code id="ver-kod" style="font-family:monospace;background:#efefef;padding:2px 6px;border-radius:4px;user-select:all;"></code></div>
+            <div><span style="color:#1F4638;">Namn:</span> @ (eller <span id="ver-doman"></span>)</div>
+            <div style="margin-top:6px;"><span style="color:#1F4638;">Typ:</span> TXT</div>
+            <div style="margin-top:6px;"><span style="color:#1F4638;">Värde:</span> <code id="ver-kod" style="font-family:monospace;background:#efefef;padding:2px 6px;border-radius:4px;user-select:all;"></code></div>
         </div>
-        <p style="font-size:13px;color:#a0a0a0;margin-bottom:20px;">När du lagt till posten (kan ta 5–60 min) — klicka Verifiera nedan.</p>
+        <p style="font-size:13px;color:#1F4638;margin-bottom:20px;">När du lagt till posten (kan ta 5–60 min) — klicka Verifiera nedan.</p>
         <button class="submit-btn" id="ver-btn" onclick="verifieraNu()">Verifiera nu →</button>
         <p id="ver-msg" style="display:none;margin-top:12px;font-size:13px;"></p>
     </div>
@@ -4045,14 +4134,14 @@ SALJ_HTML = '''<!DOCTYPE html>
         <li>Överlåtelse sker automatiskt via Openprovider</li>
         <li>Gratis att lista — inga upfront-kostnader</li>
     </ul>
-    <footer style="margin-top:48px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#a0a0a0;line-height:2.4;">
-      <a href="/" style="color:#a0a0a0;text-decoration:none;">Namnkoll</a> &middot;
-      <a href="/generator" style="color:#a0a0a0;text-decoration:none;">Namnkonfigurator</a> &middot;
-      <a href="/trender" style="color:#a0a0a0;text-decoration:none;">Trender</a> &middot;
-      <a href="/domanmarknaden" style="color:#a0a0a0;text-decoration:none;">Domänmarknaden</a> &middot;
-      <a href="/marknadsplats" style="color:#a0a0a0;text-decoration:none;">Marknadsplats</a> &middot;
-      <a href="/salj" style="color:#a0a0a0;text-decoration:none;">Sälj domän</a> &middot;
-      <a href="/kolla-foretagsnamn" style="color:#a0a0a0;text-decoration:none;">Guide</a>
+    <footer style="margin-top:48px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#1F4638;line-height:2.4;">
+      <a href="/" style="color:#1F4638;text-decoration:none;">Namnkoll</a> &middot;
+      <a href="/generator" style="color:#1F4638;text-decoration:none;">Namnkonfigurator</a> &middot;
+      <a href="/trender" style="color:#1F4638;text-decoration:none;">Trender</a> &middot;
+      <a href="/domanmarknaden" style="color:#1F4638;text-decoration:none;">Domänmarknaden</a> &middot;
+      <a href="/marknadsplats" style="color:#1F4638;text-decoration:none;">Marknadsplats</a> &middot;
+      <a href="/salj" style="color:#1F4638;text-decoration:none;">Sälj domän</a> &middot;
+      <a href="/kolla-foretagsnamn" style="color:#1F4638;text-decoration:none;">Guide</a>
     </footer>
     </main>
 
@@ -4185,17 +4274,17 @@ MARKNADSPLATS_HTML = '''<!DOCTYPE html>
     <p id="tom-msg" class="tom-msg" style="display:none;">Inga domäner matchar sökningen.</p>
     <div class="paginering" id="paginering"></div>
 
-    <p style="margin-top:40px;font-size:13px;color:#a0a0a0;">
-        Har du en domän att sälja? <a href="/salj" style="color:#0a0a0a;border-bottom:0.5px solid rgba(0,0,0,0.2);">Lista den gratis →</a>
+    <p style="margin-top:40px;font-size:13px;color:#1F4638;">
+        Har du en domän att sälja? <a href="/salj" style="color:#1F4638;border-bottom:0.5px solid rgba(0,0,0,0.2);">Lista den gratis →</a>
     </p>
-    <footer style="margin-top:48px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#a0a0a0;line-height:2.4;">
-      <a href="/" style="color:#a0a0a0;text-decoration:none;">Namnkoll</a> &middot;
-      <a href="/generator" style="color:#a0a0a0;text-decoration:none;">Namnkonfigurator</a> &middot;
-      <a href="/trender" style="color:#a0a0a0;text-decoration:none;">Trender</a> &middot;
-      <a href="/domanmarknaden" style="color:#a0a0a0;text-decoration:none;">Domänmarknaden</a> &middot;
-      <a href="/marknadsplats" style="color:#a0a0a0;text-decoration:none;">Marknadsplats</a> &middot;
-      <a href="/salj" style="color:#a0a0a0;text-decoration:none;">Sälj domän</a> &middot;
-      <a href="/kolla-foretagsnamn" style="color:#a0a0a0;text-decoration:none;">Guide</a>
+    <footer style="margin-top:48px;padding-top:20px;border-top:0.5px solid rgba(0,0,0,0.08);font-size:12px;color:#1F4638;line-height:2.4;">
+      <a href="/" style="color:#1F4638;text-decoration:none;">Namnkoll</a> &middot;
+      <a href="/generator" style="color:#1F4638;text-decoration:none;">Namnkonfigurator</a> &middot;
+      <a href="/trender" style="color:#1F4638;text-decoration:none;">Trender</a> &middot;
+      <a href="/domanmarknaden" style="color:#1F4638;text-decoration:none;">Domänmarknaden</a> &middot;
+      <a href="/marknadsplats" style="color:#1F4638;text-decoration:none;">Marknadsplats</a> &middot;
+      <a href="/salj" style="color:#1F4638;text-decoration:none;">Sälj domän</a> &middot;
+      <a href="/kolla-foretagsnamn" style="color:#1F4638;text-decoration:none;">Guide</a>
     </footer>
     </main>
 
@@ -4266,7 +4355,7 @@ TACK_BEGAGNAD_HTML = '''<!DOCTYPE html>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        :root { --svart: #0F2A22; --primarGron: #1F4638; --bakgrund: #f5f0e8; --text-sekunder: #355D4D; --text-tertiar: #7A9E8E; --border: rgba(31,70,56,0.12); }
+        :root { --svart: #1F4638; --primarGron: #1F4638; --bakgrund: #f5f0e8; --text-sekunder: #1F4638; --text-tertiar: #1F4638; --border: rgba(31,70,56,0.12); }
         *, *::before, *::after { box-sizing: border-box; }
         body { font-family: 'DM Sans', sans-serif; max-width: 560px; margin: 120px auto; padding: 0 24px; color: var(--svart); background: var(--bakgrund); text-align: center; }
         h1 { font-family: 'Cinzel', serif; font-size: 30px; font-weight: 500; letter-spacing: 0.04em; margin-bottom: 12px; }
