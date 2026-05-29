@@ -452,13 +452,37 @@ def _nya_bolag(limit=6):
 # Värm upp trender-cachen i bakgrunden vid start
 threading.Thread(target=_hämta_trender, daemon=True).start()
 
+# ── Delad design ──────────────────────────────────────────────────────────────
+_NAVBAR = (
+    '<header style="background:#f5f0e8;padding:0 24px;margin:0 -24px 48px;">'
+    '<div style="max-width:580px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;height:56px;">'
+    '<a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;">'
+    '<img src="/static/logo.svg" style="height:36px;" alt="Namnverket">'
+    '<span style="font-family:\'Cinzel\',serif;font-size:11px;letter-spacing:0.18em;font-weight:500;color:#1F4638;">NAMNVERKET</span>'
+    '</a>'
+    '</div>'
+    '</header>'
+)
+
+_NAVBAR_WIDE = (
+    '<header style="background:#f5f0e8;padding:0 24px;margin:0 -24px 48px;">'
+    '<div style="max-width:620px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;height:56px;">'
+    '<a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;">'
+    '<img src="/static/logo.svg" style="height:36px;" alt="Namnverket">'
+    '<span style="font-family:\'Cinzel\',serif;font-size:11px;letter-spacing:0.18em;font-weight:500;color:#1F4638;">NAMNVERKET</span>'
+    '</a>'
+    '</div>'
+    '</header>'
+)
+# ─────────────────────────────────────────────────────────────────────────────
+
 HTML = '''
 <!DOCTYPE html>
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230a0a0a' rx='6'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' fill='white' font-family='Inter,sans-serif' font-weight='500' font-size='18'>N</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='30' fill='%231F4638'/><rect x='13' y='46' width='38' height='4' fill='%23E9F2EC'/><rect x='16' y='42' width='32' height='4' fill='%23E9F2EC'/><rect x='18' y='25' width='4' height='17' fill='%23E9F2EC'/><rect x='25' y='25' width='4' height='17' fill='%23E9F2EC'/><rect x='33' y='25' width='4' height='17' fill='%23E9F2EC'/><rect x='40' y='25' width='4' height='17' fill='%23E9F2EC'/><rect x='15' y='21' width='34' height='4' fill='%23E9F2EC'/><polygon points='13,21 32,11 51,21' fill='%23E9F2EC'/><rect x='28' y='34' width='8' height='8' fill='%231F4638'/></svg>">
     <title>Namnverket — Hitta ett namn som faktiskt är ledigt</title>
     <meta name="description" content="Kolla om ett företagsnamn är ledigt hos Bolagsverket, domäner och varumärken i ett slag. Gratis namnkoll för svenska företag.">
     <meta name="keywords" content="företagsnamn, bolagsnamn, domän ledig, namnkoll, registrera företag Sverige, köp domän, registrera domän, billig domän Sverige, .se domän, köp .se, domänregistrering">
@@ -472,7 +496,7 @@ HTML = '''
     <meta property="og:image" content="https://namnverket.se/og-bild.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -527,30 +551,35 @@ HTML = '''
     </script>
     <style>
         :root {
-            --svart: #0a0a0a;
-            --text-sekunder: #6b6b6b;
-            --text-tertiar: #a0a0a0;
-            --border: rgba(0,0,0,0.08);
-            --gron: #16a34a;
+            --svart: #0F2A22;
+            --primarGron: #1F4638;
+            --mellangron: #355D4D;
+            --ljusgron: #A9C5B1;
+            --bakgrund: #f5f0e8;
+            --text-sekunder: #355D4D;
+            --text-tertiar: #7A9E8E;
+            --border: rgba(31,70,56,0.12);
+            --gron: #1F4638;
             --rod: #dc2626;
             --amber: #d97706;
-            --yta: #f9f9f8;
+            --yta: #ddeae2;
         }
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; max-width: 580px; margin: 80px auto 120px; padding: 0 24px; color: var(--svart); }
-        .logo { font-size: 11px; letter-spacing: 0.15em; color: var(--text-tertiar); margin-bottom: 2rem; font-weight: 400; }
-        h1 { font-size: 36px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 12px; }
-        .sub { font-size: 15px; color: var(--text-sekunder); margin-bottom: 28px; }
+        body { font-family: 'DM Sans', sans-serif; max-width: 580px; margin: 80px auto 120px; padding: 0 24px; color: var(--svart); background: var(--bakgrund); }
+        .logo { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.18em; color: var(--primarGron); margin-bottom: 2rem; font-weight: 500; }
+        h1 { font-family: 'Cinzel', serif; font-size: 30px; font-weight: 500; letter-spacing: 0.04em; line-height: 1.25; margin-bottom: 12px; color: var(--svart); }
+        .sub { font-size: 15px; color: var(--text-sekunder); margin-bottom: 28px; font-weight: 300; }
         .input-rad { display: flex; gap: 8px; }
-        .input-rad input { flex: 1; height: 48px; padding: 0 14px; font-size: 15px; font-family: 'Inter', sans-serif; border: 1px solid var(--border); border-radius: 8px; outline: none; color: var(--svart); background: #fff; }
-        .input-rad input:focus { outline: none; border-color: rgba(0,0,0,0.3); box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
-        .input-rad button { height: 48px; padding: 0 22px; background: var(--svart); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; margin: 0; width: auto; }
-        .input-rad button:hover { background: #1a1a1a; }
-        .slumpa-btn { height: 48px; padding: 0 20px; background: transparent; color: var(--svart); border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 400; cursor: pointer; white-space: nowrap; margin: 0; width: auto; }
-        .slumpa-btn:hover { background: #fafafa; }
+        .input-rad input { flex: 1; height: 48px; padding: 0 16px; font-size: 15px; font-family: 'DM Sans', sans-serif; border: 1px solid var(--border); border-radius: 100px; outline: none; color: var(--svart); background: #fff; }
+        .input-rad input:focus { outline: none; border-color: var(--mellangron); box-shadow: 0 0 0 3px rgba(31,70,56,0.08); }
+        .input-rad input::placeholder { color: var(--ljusgron); }
+        .input-rad button { height: 48px; padding: 0 22px; background: var(--primarGron); color: var(--bakgrund); border: none; border-radius: 100px; font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; margin: 0; width: auto; }
+        .input-rad button:hover { background: var(--svart); }
+        .slumpa-btn { height: 48px; padding: 0 20px; background: transparent; color: var(--primarGron); border: 1px solid var(--border); border-radius: 100px; font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 400; cursor: pointer; white-space: nowrap; margin: 0; width: auto; }
+        .slumpa-btn:hover { background: var(--yta); }
         .funktioner-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 1.5rem 0; }
-        .funktion-kort { padding: 16px; border: 0.5px solid rgba(0,0,0,0.08); border-radius: 10px; text-decoration: none; color: var(--svart); transition: background 0.15s; display: flex; flex-direction: column; gap: 4px; }
-        .funktion-kort:hover { background: #fafafa; }
+        .funktion-kort { padding: 16px; border: 1px solid var(--border); border-radius: 12px; text-decoration: none; color: var(--svart); transition: background 0.15s; display: flex; flex-direction: column; gap: 4px; background: rgba(255,255,255,0.5); }
+        .funktion-kort:hover { background: rgba(255,255,255,0.9); }
         .funktion-ikon { font-size: 18px; margin-bottom: 4px; }
         .funktion-namn { font-size: 14px; font-weight: 500; }
         .funktion-beskrivning { font-size: 12px; color: var(--text-tertiar); }
@@ -592,7 +621,7 @@ HTML = '''
         .paket-rad:last-of-type { border-bottom: none; }
         .paket-info .paket-namn { font-size: 15px; font-weight: 500; }
         .paket-info .paket-tokens { font-size: 13px; color: var(--text-sekunder); margin-top: 2px; }
-        .paket-kop { border: none; background: var(--svart); color: #fff; border-radius: 999px; padding: 7px 18px; font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; }
+        .paket-kop { border: none; background: var(--primarGron); color: var(--bakgrund); border-radius: 100px; padding: 7px 18px; font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; }
         .paket-kop:hover { background: #1a1a1a; }
         .modal-stang { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-tertiar); line-height: 1; padding: 0; margin-top: -4px; }
         .market-rad { font-size: 13px; color: var(--text-sekunder); padding: 8px 0 10px; border-bottom: 0.5px solid var(--border); }
@@ -641,12 +670,25 @@ HTML = '''
     </style>
 </head>
 <body>
-    <div id="sticky-namn" style="display:none;position:fixed;top:0;left:0;right:0;z-index:100;background:white;padding:10px 16px;font-size:13px;font-weight:500;border-bottom:0.5px solid rgba(0,0,0,0.08);text-align:center;"></div>
-    <header style="display:flex;justify-content:space-between;align-items:center;">
-        <p class="logo" style="margin:0;">NAMNVERKET</p>
-        <span id="token-visning-header" style="display:none;font-size:12px;color:var(--text-tertiar);cursor:pointer;" onclick="oppnaModal()">
-            <strong id="token-antal"></strong>&nbsp;tokens
-        </span>
+    <div id="sticky-namn" style="display:none;position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bakgrund);padding:10px 16px;font-size:13px;font-weight:500;border-bottom:0.5px solid var(--border);text-align:center;color:var(--svart);font-family:'DM Sans',sans-serif;"></div>
+
+    <div id="splash" style="position:fixed;inset:0;z-index:9999;background:#f5f0e8;display:flex;align-items:center;justify-content:center;padding:40px 24px;">
+        <div style="text-align:center;max-width:400px;">
+            <div style="margin-bottom:24px;"><img src="/static/logo.svg" style="width:130px;" alt="Namnverket"></div>
+            <h1 style="font-family:'Cinzel',serif;letter-spacing:0.18em;font-weight:500;font-size:26px;color:#0F2A22;margin:0 0 20px;">Namnverket</h1>
+            <p style="font-family:'DM Sans',sans-serif;font-size:15px;color:#355D4D;line-height:1.75;font-weight:300;margin:0 0 12px;">Vi hjälper dig hitta rätt namn för rätt sak. Ett namn kan vara så mycket — starten på något nytt, fortsättningen på något gammalt, eller ibland varken mer eller mindre än en bra investering.</p>
+            <p style="font-family:'DM Sans',sans-serif;font-size:12px;color:#A9C5B1;font-style:italic;margin:0 0 36px;">För effektiv för att vara en riktig myndighet.</p>
+            <button onclick="stangSplash()" style="background:#1F4638;color:#f5f0e8;border:none;border-radius:100px;padding:14px 36px;font-size:15px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;letter-spacing:0.01em;">Hitta ditt namn</button>
+        </div>
+    </div>
+
+    <header style="background:#f5f0e8;padding:0;margin:0 -24px 40px;">
+        <div style="max-width:580px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center;height:56px;">
+            <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;"><img src="/static/logo.svg" style="height:36px;" alt="Namnverket"><span style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:0.18em;font-weight:500;color:#1F4638;">NAMNVERKET</span></a>
+            <span id="token-visning-header" style="display:none;font-size:12px;color:#A9C5B1;cursor:pointer;" onclick="oppnaModal()">
+                <strong id="token-antal"></strong>&nbsp;tokens
+            </span>
+        </div>
     </header>
     <main>
     <h1>Hitta ett namn som faktiskt är ledigt.</h1>
@@ -1133,6 +1175,14 @@ HTML = '''
                 '<button class="reg-btn" onclick="visaPris(\\'' + doman + '\\', \\'' + boxId + '\\')">registrera</button>' +
                 '</span></div>' +
                 '<div id="' + boxId + '" class="reg-box" style="display:none;"></div>';
+        }
+
+        function stangSplash() {
+            sessionStorage.setItem('nv_visited', '1');
+            document.getElementById('splash').style.display = 'none';
+        }
+        if (sessionStorage.getItem('nv_visited')) {
+            document.getElementById('splash').style.display = 'none';
         }
 
         function getCookieVal(name) {
@@ -1636,26 +1686,30 @@ GENERATOR_HTML = '''<!DOCTYPE html>
     <meta property="og:image" content="https://namnverket.se/og-bild.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --svart: #0a0a0a;
-            --text-sekunder: #6b6b6b;
-            --text-tertiar: #a0a0a0;
-            --border: rgba(0,0,0,0.08);
-            --yta: #f9f9f8;
-            --gron: #16a34a;
+            --svart: #0F2A22;
+            --primarGron: #1F4638;
+            --mellangron: #355D4D;
+            --ljusgron: #A9C5B1;
+            --bakgrund: #f5f0e8;
+            --text-sekunder: #355D4D;
+            --text-tertiar: #7A9E8E;
+            --border: rgba(31,70,56,0.12);
+            --yta: #ddeae2;
+            --gron: #1F4638;
             --rod: #dc2626;
         }
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; max-width: 580px; margin: 80px auto 120px; padding: 0 24px; color: var(--svart); }
-        .logo { font-size: 11px; letter-spacing: 0.15em; color: var(--text-tertiar); margin-bottom: 2rem; font-weight: 400; }
+        body { font-family: 'DM Sans', sans-serif; max-width: 580px; margin: 0 auto 120px; padding: 0 24px; color: var(--svart); background: var(--bakgrund); }
+        .logo { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.18em; color: var(--primarGron); margin-bottom: 2rem; font-weight: 500; }
         .back { font-size: 13px; color: var(--text-tertiar); text-decoration: none; display: inline-block; margin-bottom: 28px; }
         .back:hover { color: var(--svart); }
-        h1 { font-size: 36px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 10px; }
-        .sub { font-size: 15px; color: var(--text-sekunder); margin-bottom: 32px; }
+        h1 { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 500; letter-spacing: 0.04em; line-height: 1.25; margin-bottom: 10px; color: var(--svart); }
+        .sub { font-size: 15px; color: var(--text-sekunder); margin-bottom: 32px; font-weight: 300; }
         .slump-sektion { margin-top: 48px; padding-top: 36px; border-top: 0.5px solid var(--border); }
-        .slump-sektion h2 { font-size: 20px; font-weight: 500; letter-spacing: -0.01em; margin-bottom: 8px; }
+        .slump-sektion h2 { font-family: 'Cinzel', serif; font-size: 18px; font-weight: 500; letter-spacing: 0.04em; margin-bottom: 8px; }
         .slump-sektion .slump-desc { font-size: 14px; color: var(--text-sekunder); margin-bottom: 20px; }
         .slump-btn { display: inline-block; height: 44px; padding: 0 24px; line-height: 44px; background: none; color: var(--svart); border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; font-size: 14px; font-family: \'Inter\', sans-serif; font-weight: 500; cursor: pointer; text-decoration: none; }
         .slump-btn:hover { background: var(--yta); }
@@ -1775,15 +1829,13 @@ GENERATOR_HTML = '''<!DOCTYPE html>
         .paket-rad:last-of-type { border-bottom: none; }
         .paket-info .paket-namn { font-size: 15px; font-weight: 500; }
         .paket-info .paket-tokens { font-size: 13px; color: var(--text-sekunder); margin-top: 2px; }
-        .paket-kop { border: none; background: var(--svart); color: #fff; border-radius: 999px; padding: 7px 18px; font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; }
+        .paket-kop { border: none; background: var(--primarGron); color: var(--bakgrund); border-radius: 100px; padding: 7px 18px; font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; white-space: nowrap; }
         .paket-kop:hover { background: #1a1a1a; }
         .modal-stang { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-tertiar); line-height: 1; padding: 0; margin-top: -4px; }
     </style>
 </head>
 <body>
-    <header>
-        <p class="logo">NAMNVERKET</p>
-    </header>
+    ''' + _NAVBAR + '''
     <main>
     <a class="back" href="/">← tillbaka</a>
     <h1>Namnkonfigurator</h1>
@@ -2309,23 +2361,27 @@ FAVORITER_HTML = '''<!DOCTYPE html>
     <link rel="alternate" hreflang="sv" href="https://namnverket.se/favoriter" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
         :root {
-            --svart: #0a0a0a;
-            --text-sekunder: #6b6b6b;
-            --text-tertiar: #a0a0a0;
-            --border: rgba(0,0,0,0.08);
-            --yta: #f9f9f8;
+            --svart: #0F2A22;
+            --primarGron: #1F4638;
+            --mellangron: #355D4D;
+            --ljusgron: #A9C5B1;
+            --bakgrund: #f5f0e8;
+            --text-sekunder: #355D4D;
+            --text-tertiar: #7A9E8E;
+            --border: rgba(31,70,56,0.12);
+            --yta: #ddeae2;
             --rod: #dc2626;
         }
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: \'Inter\', sans-serif; max-width: 580px; margin: 80px auto 120px; padding: 0 24px; color: var(--svart); }
-        .logo { font-size: 11px; letter-spacing: 0.15em; color: var(--text-tertiar); margin-bottom: 2rem; font-weight: 400; }
+        body { font-family: 'DM Sans', sans-serif; max-width: 580px; margin: 0 auto 120px; padding: 0 24px; color: var(--svart); background: var(--bakgrund); }
+        .logo { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.18em; color: var(--primarGron); margin-bottom: 2rem; font-weight: 500; }
         .back { font-size: 13px; color: var(--text-tertiar); text-decoration: none; display: inline-block; margin-bottom: 28px; }
         .back:hover { color: var(--svart); }
-        h1 { font-size: 36px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 32px; }
+        h1 { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 500; letter-spacing: 0.04em; line-height: 1.25; margin-bottom: 32px; color: var(--svart); }
         .tom-text { font-size: 14px; color: var(--text-tertiar); padding: 8px 0 24px; line-height: 1.7; }
         .tom-text a { color: var(--svart); }
         .namn-rad { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 0.5px solid var(--border); }
@@ -2361,9 +2417,7 @@ FAVORITER_HTML = '''<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <header>
-        <p class="logo">NAMNVERKET</p>
-    </header>
+    ''' + _NAVBAR + '''
     <main>
     <a class="back" href="/">← tillbaka</a>
     <h1>Sparade namn</h1>
@@ -2824,24 +2878,28 @@ KOPA_DOMAN_LANDING_HTML = '''<!DOCTYPE html>
       }
     }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --svart: #0a0a0a;
-            --text-sekunder: #6b6b6b;
-            --text-tertiar: #a0a0a0;
-            --border: rgba(0,0,0,0.08);
-            --gron: #16a34a;
+            --svart: #0F2A22;
+            --primarGron: #1F4638;
+            --mellangron: #355D4D;
+            --ljusgron: #A9C5B1;
+            --bakgrund: #f5f0e8;
+            --text-sekunder: #355D4D;
+            --text-tertiar: #7A9E8E;
+            --border: rgba(31,70,56,0.12);
+            --gron: #1F4638;
             --rod: #dc2626;
-            --yta: #f9f9f8;
+            --yta: #ddeae2;
         }
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: \'Inter\', sans-serif; max-width: 580px; margin: 80px auto 120px; padding: 0 24px; color: var(--svart); }
-        .logo { font-size: 11px; letter-spacing: 0.15em; color: var(--text-tertiar); margin-bottom: 2rem; font-weight: 400; }
+        body { font-family: 'DM Sans', sans-serif; max-width: 580px; margin: 0 auto 120px; padding: 0 24px; color: var(--svart); background: var(--bakgrund); }
+        .logo { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.18em; color: var(--primarGron); margin-bottom: 2rem; font-weight: 500; }
         .back { font-size: 13px; color: var(--text-tertiar); text-decoration: none; display: inline-block; margin-bottom: 28px; }
         .back:hover { color: var(--svart); }
-        h1 { font-size: 36px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 10px; }
-        .sub { font-size: 15px; color: var(--text-sekunder); margin-bottom: 36px; }
+        h1 { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 500; letter-spacing: 0.04em; line-height: 1.25; margin-bottom: 10px; color: var(--svart); }
+        .sub { font-size: 15px; color: var(--text-sekunder); margin-bottom: 36px; font-weight: 300; }
         .pris-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 36px; }
         .pris-kort {
             border: 0.5px solid var(--border); border-radius: 12px;
@@ -2853,18 +2911,18 @@ KOPA_DOMAN_LANDING_HTML = '''<!DOCTYPE html>
         .sok-sektion label { display: block; font-size: 12px; color: var(--text-tertiar); letter-spacing: 0.04em; margin-bottom: 10px; }
         .sok-rad { display: flex; gap: 8px; }
         .sok-rad input {
-            flex: 1; height: 48px; padding: 0 14px; font-size: 15px;
-            font-family: \'Inter\', sans-serif; border: 1px solid var(--border);
-            border-radius: 8px; outline: none; color: var(--svart); background: #fff;
+            flex: 1; height: 48px; padding: 0 16px; font-size: 15px;
+            font-family: 'DM Sans', sans-serif; border: 1px solid var(--border);
+            border-radius: 100px; outline: none; color: var(--svart); background: #fff;
         }
-        .sok-rad input:focus { border-color: rgba(0,0,0,0.2); }
-        .sok-rad input::placeholder { color: var(--text-tertiar); }
+        .sok-rad input:focus { border-color: var(--mellangron); }
+        .sok-rad input::placeholder { color: var(--ljusgron); }
         .sok-btn {
-            height: 48px; padding: 0 22px; background: var(--svart); color: #fff;
-            border: none; border-radius: 8px; font-size: 14px; font-family: \'Inter\', sans-serif;
+            height: 48px; padding: 0 22px; background: var(--primarGron); color: var(--bakgrund);
+            border: none; border-radius: 100px; font-size: 14px; font-family: 'DM Sans', sans-serif;
             font-weight: 500; cursor: pointer; white-space: nowrap;
         }
-        .sok-btn:hover { background: #1a1a1a; }
+        .sok-btn:hover { background: var(--svart); }
         .sok-btn:disabled { background: var(--text-tertiar); cursor: not-allowed; }
         #doman-resultat { margin-top: 24px; }
         .res-rad {
@@ -2893,9 +2951,7 @@ KOPA_DOMAN_LANDING_HTML = '''<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <header>
-        <p class="logo">NAMNVERKET</p>
-    </header>
+    ''' + _NAVBAR + '''
     <main>
         <a class="back" href="/">← tillbaka</a>
         <h1>Registrera din domän</h1>
@@ -3057,24 +3113,24 @@ TACK_HTML = '''
     <meta name="robots" content="noindex, nofollow">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        :root { --svart: #0F2A22; --primarGron: #1F4638; --bakgrund: #f5f0e8; --text-sekunder: #355D4D; --text-tertiar: #7A9E8E; --border: rgba(31,70,56,0.12); }
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; max-width: 580px; margin: 120px auto; padding: 0 24px; color: #0a0a0a; text-align: center; }
-        .logo { font-size: 11px; letter-spacing: 0.15em; color: #a0a0a0; margin-bottom: 3rem; }
-        h1 { font-size: 32px; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 12px; }
-        p { font-size: 15px; color: #6b6b6b; margin-bottom: 8px; }
-        .email { font-size: 13px; color: #a0a0a0; margin-bottom: 32px; }
-        a { display: inline-block; font-size: 14px; color: #0a0a0a; text-decoration: none; border-bottom: 0.5px solid rgba(0,0,0,0.2); padding-bottom: 2px; }
-        a:hover { border-color: #0a0a0a; }
+        body { font-family: 'DM Sans', sans-serif; max-width: 580px; margin: 120px auto; padding: 0 24px; color: var(--svart); background: var(--bakgrund); text-align: center; }
+        h1 { font-family: 'Cinzel', serif; font-size: 30px; font-weight: 500; letter-spacing: 0.04em; margin-bottom: 12px; }
+        p { font-size: 15px; color: var(--text-sekunder); margin-bottom: 8px; font-weight: 300; }
+        .email { font-size: 13px; color: var(--text-tertiar); margin-bottom: 32px; }
+        a { display: inline-block; font-size: 14px; color: var(--svart); text-decoration: none; border-bottom: 0.5px solid var(--border); padding-bottom: 2px; }
+        a:hover { border-color: var(--svart); }
         @media (max-width: 600px) {
             body { padding: 0 16px; margin-top: 40px; }
-            h1 { font-size: 28px; }
+            h1 { font-size: 26px; }
         }
     </style>
 </head>
 <body>
-    <header><p class="logo">NAMNVERKET</p></header>
+    ''' + _NAVBAR_WIDE + '''
     <main>
     <h1>Tack!</h1>
     <p>{{ tokens }} tokens har lagts till{% if email %} på {{ email }}{% endif %}.</p>
@@ -3125,26 +3181,26 @@ TACK_DOMAN_HTML = '''
     <meta name="robots" content="noindex, nofollow">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        :root { --svart: #0F2A22; --primarGron: #1F4638; --bakgrund: #f5f0e8; --text-sekunder: #355D4D; --text-tertiar: #7A9E8E; --border: rgba(31,70,56,0.12); }
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; max-width: 580px; margin: 120px auto; padding: 0 24px; color: #0a0a0a; text-align: center; }
-        .logo { font-size: 11px; letter-spacing: 0.15em; color: #a0a0a0; margin-bottom: 3rem; font-weight: 400; }
-        h1 { font-size: 32px; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 16px; }
+        body { font-family: 'DM Sans', sans-serif; max-width: 580px; margin: 120px auto; padding: 0 24px; color: var(--svart); background: var(--bakgrund); text-align: center; }
+        h1 { font-family: 'Cinzel', serif; font-size: 30px; font-weight: 500; letter-spacing: 0.04em; margin-bottom: 16px; }
         .doman { font-size: 22px; font-weight: 500; margin-bottom: 12px; }
-        p { font-size: 15px; color: #6b6b6b; margin-bottom: 8px; }
-        .epost { font-size: 13px; color: #a0a0a0; margin-bottom: 32px; }
+        p { font-size: 15px; color: var(--text-sekunder); margin-bottom: 8px; font-weight: 300; }
+        .epost { font-size: 13px; color: var(--text-tertiar); margin-bottom: 32px; }
         .varning { font-size: 13px; color: #d97706; margin-bottom: 24px; }
-        a.hem { display: inline-block; font-size: 14px; color: #0a0a0a; text-decoration: none; border-bottom: 0.5px solid rgba(0,0,0,0.2); padding-bottom: 2px; }
-        a.hem:hover { border-color: #0a0a0a; }
+        a.hem { display: inline-block; font-size: 14px; color: var(--svart); text-decoration: none; border-bottom: 0.5px solid var(--border); padding-bottom: 2px; }
+        a.hem:hover { border-color: var(--svart); }
         @media (max-width: 600px) {
             body { padding: 0 16px; margin-top: 40px; }
-            h1 { font-size: 28px; }
+            h1 { font-size: 26px; }
         }
     </style>
 </head>
 <body>
-    <header><p class="logo">NAMNVERKET</p></header>
+    ''' + _NAVBAR_WIDE + '''
     <main>
     {% if ok %}
     <h1>Grattis!</h1>
@@ -3298,12 +3354,12 @@ def analysera_favoriter():
 
 _SIDA_CSS = '''
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; max-width: 620px; margin: 80px auto 120px; padding: 0 24px; color: #0a0a0a; }
-        .logo { font-size: 11px; letter-spacing: 0.15em; color: #a0a0a0; margin-bottom: 2rem; font-weight: 400; }
-        .back { font-size: 13px; color: #a0a0a0; text-decoration: none; display: inline-block; margin-bottom: 28px; }
-        .back:hover { color: #0a0a0a; }
-        h1 { font-size: 32px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 8px; }
-        .sub { font-size: 15px; color: #6b6b6b; margin-bottom: 40px; }
+        body { font-family: 'DM Sans', sans-serif; max-width: 620px; margin: 80px auto 120px; padding: 0 24px; color: #0F2A22; background: #f5f0e8; }
+        .logo { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.18em; color: #1F4638; margin-bottom: 2rem; font-weight: 500; }
+        .back { font-size: 13px; color: #7A9E8E; text-decoration: none; display: inline-block; margin-bottom: 28px; }
+        .back:hover { color: #0F2A22; }
+        h1 { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 500; letter-spacing: 0.04em; line-height: 1.25; margin-bottom: 8px; color: #0F2A22; }
+        .sub { font-size: 15px; color: #355D4D; margin-bottom: 40px; font-weight: 300; }
         .sektion { margin-bottom: 48px; }
         .sektion-rubrik { font-size: 11px; letter-spacing: 0.12em; color: #a0a0a0; margin-bottom: 16px; font-weight: 400; }
         .rad-lista { list-style: none; padding: 0; margin: 0; }
@@ -3374,11 +3430,11 @@ TRENDER_HTML = '''<!DOCTYPE html>
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>''' + _SIDA_CSS + '''</style>
 </head>
 <body>
-    <header><p class="logo">NAMNVERKET</p></header>
+    ''' + _NAVBAR_WIDE + '''
     <main>
     <a class="back" href="/">← tillbaka</a>
     <h1>Trender</h1>
@@ -3463,11 +3519,11 @@ DOMANMARKNADEN_HTML = '''<!DOCTYPE html>
     <meta property="og:type" content="website">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>''' + _SIDA_CSS + '''</style>
 </head>
 <body>
-    <header><p class="logo">NAMNVERKET</p></header>
+    ''' + _NAVBAR_WIDE + '''
     <main>
     <a class="back" href="/">← tillbaka</a>
     <h1>Domänmarknaden</h1>
@@ -3681,26 +3737,26 @@ def og_bild():
 
 _CONTENT_HEAD = '''    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">'''
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">'''
 
-_CONTENT_CSS = '''        *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; max-width: 620px; margin: 80px auto 120px; padding: 0 24px; color: #0a0a0a; }
-        .logo { font-size: 11px; letter-spacing: 0.15em; color: #a0a0a0; margin-bottom: 2rem; font-weight: 400; }
-        nav.bc { font-size: 12px; color: #a0a0a0; margin-bottom: 28px; }
-        nav.bc a { color: #a0a0a0; text-decoration: none; }
-        nav.bc a:hover { color: #0a0a0a; }
+_CONTENT_CSS = '''        :root { --svart: #0F2A22; --primarGron: #1F4638; --mellangron: #355D4D; --ljusgron: #A9C5B1; --bakgrund: #f5f0e8; --text-sekunder: #355D4D; --text-tertiar: #7A9E8E; --border: rgba(31,70,56,0.12); }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; max-width: 620px; margin: 0 auto 120px; padding: 0 24px; color: var(--svart); background: var(--bakgrund); }
+        nav.bc { font-size: 12px; color: var(--text-tertiar); margin-bottom: 28px; }
+        nav.bc a { color: var(--text-tertiar); text-decoration: none; }
+        nav.bc a:hover { color: var(--svart); }
         nav.bc span { margin: 0 6px; }
-        h1 { font-size: 36px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 14px; }
-        .ingress { font-size: 16px; color: #6b6b6b; line-height: 1.7; margin-bottom: 40px; border-bottom: 0.5px solid rgba(0,0,0,0.08); padding-bottom: 28px; }
-        h2 { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; margin: 36px 0 10px; }
-        p { font-size: 15px; color: #4a4a4a; line-height: 1.75; margin-bottom: 16px; }
-        a.intern { color: #0a0a0a; border-bottom: 0.5px solid rgba(0,0,0,0.2); text-decoration: none; padding-bottom: 1px; }
-        a.intern:hover { border-color: #0a0a0a; }
-        .cta { display: inline-block; margin-top: 32px; height: 48px; line-height: 48px; padding: 0 28px; background: #0a0a0a; color: #fff; border-radius: 8px; font-size: 14px; font-weight: 500; text-decoration: none; }
-        .cta:hover { background: #1a1a1a; }
-        footer.side { margin-top: 64px; padding-top: 24px; border-top: 0.5px solid rgba(0,0,0,0.08); font-size: 13px; color: #a0a0a0; }
-        footer.side a { color: #a0a0a0; text-decoration: none; border-bottom: 0.5px solid rgba(0,0,0,0.15); }
-        @media (max-width: 600px) { body { padding: 0 16px; margin-top: 40px; } h1 { font-size: 28px; } }'''
+        h1 { font-family: 'Cinzel', serif; font-size: 30px; font-weight: 500; letter-spacing: 0.04em; line-height: 1.25; margin-bottom: 14px; }
+        .ingress { font-size: 16px; color: var(--text-sekunder); line-height: 1.7; margin-bottom: 40px; border-bottom: 0.5px solid var(--border); padding-bottom: 28px; font-weight: 300; }
+        h2 { font-family: 'Cinzel', serif; font-size: 17px; font-weight: 500; letter-spacing: 0.03em; margin: 36px 0 10px; }
+        p { font-size: 15px; color: var(--text-sekunder); line-height: 1.75; margin-bottom: 16px; font-weight: 300; }
+        a.intern { color: var(--svart); border-bottom: 0.5px solid var(--border); text-decoration: none; padding-bottom: 1px; }
+        a.intern:hover { border-color: var(--svart); }
+        .cta { display: inline-block; margin-top: 32px; height: 48px; line-height: 48px; padding: 0 28px; background: var(--primarGron); color: var(--bakgrund); border-radius: 100px; font-size: 14px; font-weight: 500; text-decoration: none; }
+        .cta:hover { background: var(--svart); }
+        footer.side { margin-top: 64px; padding-top: 24px; border-top: 0.5px solid var(--border); font-size: 13px; color: var(--text-tertiar); }
+        footer.side a { color: var(--text-tertiar); text-decoration: none; border-bottom: 0.5px solid var(--border); }
+        @media (max-width: 600px) { body { padding: 0 16px; } h1 { font-size: 24px; } }'''
 
 KOLLA_FORETAGSNAMN_HTML = f'''<!DOCTYPE html>
 <html lang="sv">
@@ -3729,7 +3785,7 @@ KOLLA_FORETAGSNAMN_HTML = f'''<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <header><p class="logo">NAMNVERKET</p></header>
+    ''' + _NAVBAR_WIDE + '''
     <main>
         <nav class="bc" aria-label="Brödsmulor">
             <a href="/">Namnverket</a><span>›</span><span>Kolla företagsnamn</span>
@@ -3791,7 +3847,7 @@ REGISTRERA_DOMAN_HTML = f'''<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <header><p class="logo">NAMNVERKET</p></header>
+    ''' + _NAVBAR_WIDE + '''
     <main>
         <nav class="bc" aria-label="Brödsmulor">
             <a href="/">Namnverket</a><span>›</span><span>Registrera .se-domän</span>
@@ -3855,7 +3911,7 @@ VAD_AR_VARUMARKE_HTML = f'''<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <header><p class="logo">NAMNVERKET</p></header>
+    ''' + _NAVBAR_WIDE + '''
     <main>
         <nav class="bc" aria-label="Brödsmulor">
             <a href="/">Namnverket</a><span>›</span><span>Vad är ett varumärke?</span>
@@ -3939,11 +3995,11 @@ SALJ_HTML = '''<!DOCTYPE html>
     <link rel="canonical" href="https://namnverket.se/salj">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>''' + _MARKETPLACE_CSS + '''</style>
 </head>
 <body>
-    <header><p class="logo">NAMNVERKET</p></header>
+    ''' + _NAVBAR_WIDE + '''
     <main>
     <a href="/" class="back">← tillbaka</a>
     <h1>Sälj din domän</h1>
@@ -4103,11 +4159,11 @@ MARKNADSPLATS_HTML = '''<!DOCTYPE html>
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>''' + _MARKETPLACE_CSS + '''</style>
 </head>
 <body>
-    <header><p class="logo">NAMNVERKET</p></header>
+    ''' + _NAVBAR_WIDE + '''
     <main>
     <a href="/" class="back">← tillbaka</a>
     <h1>Domänmarknadsplats</h1>
@@ -4208,22 +4264,22 @@ TACK_BEGAGNAD_HTML = '''<!DOCTYPE html>
     <meta name="robots" content="noindex, nofollow">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        :root { --svart: #0F2A22; --primarGron: #1F4638; --bakgrund: #f5f0e8; --text-sekunder: #355D4D; --text-tertiar: #7A9E8E; --border: rgba(31,70,56,0.12); }
         *, *::before, *::after { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; max-width: 560px; margin: 120px auto; padding: 0 24px; color: #0a0a0a; text-align: center; }
-        .logo { font-size: 11px; letter-spacing: 0.15em; color: #a0a0a0; margin-bottom: 3rem; }
-        h1 { font-size: 32px; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 12px; }
-        p { font-size: 15px; color: #6b6b6b; margin-bottom: 8px; }
-        .doman-namn { font-weight: 500; color: #0a0a0a; }
-        a { display: inline-block; margin-top: 24px; font-size: 14px; color: #0a0a0a; text-decoration: none; border-bottom: 0.5px solid rgba(0,0,0,0.2); padding-bottom: 2px; }
-        a:hover { border-color: #0a0a0a; }
-        .info { font-size: 13px; color: #a0a0a0; margin-top: 20px; }
+        body { font-family: 'DM Sans', sans-serif; max-width: 560px; margin: 120px auto; padding: 0 24px; color: var(--svart); background: var(--bakgrund); text-align: center; }
+        h1 { font-family: 'Cinzel', serif; font-size: 30px; font-weight: 500; letter-spacing: 0.04em; margin-bottom: 12px; }
+        p { font-size: 15px; color: var(--text-sekunder); margin-bottom: 8px; font-weight: 300; }
+        .doman-namn { font-weight: 500; color: var(--svart); }
+        a { display: inline-block; margin-top: 24px; font-size: 14px; color: var(--svart); text-decoration: none; border-bottom: 0.5px solid var(--border); padding-bottom: 2px; }
+        a:hover { border-color: var(--svart); }
+        .info { font-size: 13px; color: var(--text-tertiar); margin-top: 20px; }
         @media (max-width: 600px) { body { padding: 0 16px; margin-top: 40px; } h1 { font-size: 26px; } }
     </style>
 </head>
 <body>
-    <header><p class="logo">NAMNVERKET</p></header>
+    ''' + _NAVBAR_WIDE + '''
     <main>
     {% if ok %}
     <h1>&#x2714;&#xFE0F; {{ doman }} är din!</h1>
