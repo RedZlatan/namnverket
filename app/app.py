@@ -4833,8 +4833,14 @@ BLOGG_INLAGG_HTML = '''<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ titel }} — Namnverket</title>
+    <title>{{ titel }} | Namnverket</title>
     <meta name="description" content="{{ beskrivning }}">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="{{ titel }}">
+    <meta property="og:description" content="{{ beskrivning }}">
+    <meta property="og:url" content="https://namnverket.se/blogg/{{ slug }}">
+    <meta property="og:type" content="article">
+    <link rel="canonical" href="https://namnverket.se/blogg/{{ slug }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -4896,23 +4902,33 @@ def blogg_inlagg(slug):
         titel=inlagg['titel'],
         datum=inlagg['datum'],
         beskrivning=inlagg['beskrivning'],
+        slug=slug,
         kropp=kropp,
     )
 
 
 @app.route('/sitemap.xml')
 def sitemap():
-    xml = '''<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://namnverket.se/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
-  <url><loc>https://namnverket.se/generator</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://namnverket.se/trender</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://namnverket.se/domanmarknaden</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
-  <url><loc>https://namnverket.se/marknadsplats</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
-  <url><loc>https://namnverket.se/kolla-foretagsnamn</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://namnverket.se/registrera-doman-se</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://namnverket.se/vad-ar-ett-varumarke</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
-</urlset>'''
+    blogg_urls = ''.join(
+        f'  <url><loc>https://namnverket.se/blogg/{i["slug"]}</loc>'
+        f'<lastmod>{i["datum"]}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>\n'
+        for i in _las_alla_inlagg()
+    )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        '  <url><loc>https://namnverket.se/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>\n'
+        '  <url><loc>https://namnverket.se/generator</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>\n'
+        '  <url><loc>https://namnverket.se/trender</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n'
+        '  <url><loc>https://namnverket.se/domanmarknaden</loc><changefreq>daily</changefreq><priority>0.7</priority></url>\n'
+        '  <url><loc>https://namnverket.se/marknadsplats</loc><changefreq>daily</changefreq><priority>0.8</priority></url>\n'
+        '  <url><loc>https://namnverket.se/kolla-foretagsnamn</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>\n'
+        '  <url><loc>https://namnverket.se/registrera-doman-se</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>\n'
+        '  <url><loc>https://namnverket.se/vad-ar-ett-varumarke</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>\n'
+        '  <url><loc>https://namnverket.se/blogg</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>\n'
+        + blogg_urls
+        + '</urlset>'
+    )
     return Response(xml, mimetype='application/xml')
 
 @app.route('/robots.txt')
