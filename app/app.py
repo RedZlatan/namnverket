@@ -2296,7 +2296,7 @@ GENERATOR_HTML = '''<!DOCTYPE html>
         }
 
         function emailModalSpara() {
-            var email = document.getElementById('email-modal-input').value.trim();
+            var email = document.getElementById('email-modal-input').value.trim().toLowerCase();
             if (!email || !email.includes('@')) return;
             setCookie('nk_email', email, 365);
             document.getElementById('email-modal-overlay').classList.remove('open');
