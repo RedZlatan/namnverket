@@ -141,6 +141,13 @@ def init_db():
         stripe_session_id TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
+    con.execute('''CREATE TABLE IF NOT EXISTS presentkoder (
+        kod TEXT PRIMARY KEY,
+        tokens INTEGER NOT NULL,
+        inlost_av TEXT,
+        inlost_at TIMESTAMP,
+        skapad TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )''')
     con.commit()
     con.close()
 
@@ -175,8 +182,29 @@ def _kolla_dns_verifiering(doman, verify_code):
 
 BELOPP_TOKENS = {1900: 50, 4900: 200, 9900: 500}
 
+def _norm_email(e):
+    return (e or '').strip().lower()
+
+def _merge_tokens(from_key, to_key):
+    """Flytta tokens från en gammal nyckel (t.ex. anonym sid-UUID) till en ny (mail)."""
+    if not from_key or not to_key or from_key == to_key:
+        return
+    con = sqlite3.connect(DB)
+    row = con.execute('SELECT tokens FROM tokens WHERE session_id = ?', (from_key,)).fetchone()
+    amt = row[0] if row else 0
+    if amt:
+        con.execute(
+            'INSERT INTO tokens (session_id, tokens) VALUES (?, ?) '
+            'ON CONFLICT(session_id) DO UPDATE SET tokens = tokens + excluded.tokens',
+            (to_key, amt)
+        )
+        con.execute('UPDATE tokens SET tokens = 0 WHERE session_id = ?', (from_key,))
+        print(f'[MERGE] {amt} tokens flyttade {from_key} -> {to_key}', flush=True)
+    con.commit()
+    con.close()
+
 def get_session_id():
-    email = request.cookies.get('nk_email', '').strip()
+    email = _norm_email(request.cookies.get('nk_email', ''))
     if email:
         return email
     return request.cookies.get('sid') or str(uuid.uuid4())
@@ -480,7 +508,7 @@ _AUTH_SNIPPET = (
     '  else{document.getElementById("nv-login-modal").style.display="flex";setTimeout(function(){document.getElementById("nv-email-input").focus();},80);}'
     '};'
     'window.nvLoggaIn=function(){'
-    '  var e=document.getElementById("nv-email-input").value.trim();'
+    '  var e=document.getElementById("nv-email-input").value.trim().toLowerCase();'
     '  if(!e||!e.includes("@"))return;'
     '  var d=new Date();d.setTime(d.getTime()+365*24*60*60*1000);'
     '  document.cookie="nk_email="+encodeURIComponent(e)+";expires="+d.toUTCString()+";path=/;SameSite=Lax";'
@@ -946,7 +974,7 @@ HTML = '''
             if (e.key === 'Enter') emailModalSpara();
         });
         function emailModalSpara() {
-            var email = document.getElementById('email-modal-input').value.trim();
+            var email = document.getElementById('email-modal-input').value.trim().toLowerCase();
             if (!email || !email.includes('@')) return;
             var d = new Date(); d.setTime(d.getTime() + 365*24*60*60*1000);
             document.cookie = 'nk_email=' + encodeURIComponent(email) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
@@ -3220,6 +3248,151 @@ def kop_doman():
     resp.set_cookie('sid', sid, max_age=60 * 60 * 24 * 365, samesite='Lax')
     return resp
 
+def _ar_admin():
+    riktig = os.environ.get('ADMIN_NYCKEL', '')
+    given = request.values.get('nyckel', '')
+    return bool(riktig) and secrets.compare_digest(given, riktig)
+
+
+ADMIN_TOKENS_HTML = '''<!DOCTYPE html>
+<html lang="sv"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin — tokens</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--svart:#1F4638;--bakgrund:#f5f0e8;--border:rgba(31,70,56,0.12);}
+*{box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;max-width:520px;margin:80px auto;padding:0 24px;color:var(--svart);background:var(--bakgrund);}
+h1{font-family:'Cinzel',serif;font-size:24px;font-weight:500;letter-spacing:.04em;margin-bottom:24px;}
+h2{font-family:'Cinzel',serif;font-size:15px;font-weight:500;letter-spacing:.06em;margin:32px 0 12px;}
+label{display:block;font-size:12px;letter-spacing:.04em;margin-bottom:6px;}
+input{width:100%;height:46px;padding:0 14px;font-size:15px;font-family:'DM Sans',sans-serif;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--svart);margin-bottom:14px;}
+button{height:46px;width:100%;background:var(--svart);color:var(--bakgrund);border:none;border-radius:100px;font-size:14px;font-weight:500;cursor:pointer;}
+.melding{background:#ddeae2;border-radius:10px;padding:14px;font-size:14px;margin-bottom:24px;}
+.lank{word-break:break-all;font-size:13px;margin-top:8px;}
+.sep{height:1px;background:var(--border);margin:32px 0;}
+</style></head><body>
+<h1>Tokens</h1>
+{% if melding %}<div class="melding">{{ melding }}{% if presentlank %}<div class="lank">{{ presentlank }}</div>{% endif %}</div>{% endif %}
+
+<h2>GE TOKENS TILL EN MAIL</h2>
+<form method="POST">
+  <input type="hidden" name="nyckel" value="{{ nyckel }}">
+  <input type="hidden" name="handling" value="mail">
+  <label>Mail</label><input name="mail" placeholder="kund@exempel.se" autocomplete="off">
+  <label>Antal tokens</label><input name="antal" type="number" placeholder="200">
+  <button type="submit">Lägg till på mailen</button>
+</form>
+
+<div class="sep"></div>
+
+<h2>SKAPA PRESENT-KOD</h2>
+<form method="POST">
+  <input type="hidden" name="nyckel" value="{{ nyckel }}">
+  <input type="hidden" name="handling" value="kod">
+  <label>Antal tokens</label><input name="antal" type="number" placeholder="50">
+  <button type="submit">Skapa kod &amp; länk</button>
+</form>
+</body></html>'''
+
+LOSA_IN_HTML = '''<!DOCTYPE html>
+<html lang="sv"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Present — Namnverket</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--svart:#1F4638;--bakgrund:#f5f0e8;--border:rgba(31,70,56,0.12);}
+*{box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;max-width:520px;margin:120px auto;padding:0 24px;color:var(--svart);background:var(--bakgrund);text-align:center;}
+h1{font-family:'Cinzel',serif;font-size:28px;font-weight:500;letter-spacing:.04em;margin-bottom:12px;}
+p{font-size:15px;font-weight:300;margin-bottom:8px;}
+a{display:inline-block;margin-top:24px;font-size:14px;color:var(--svart);text-decoration:none;border-bottom:.5px solid var(--border);padding-bottom:2px;}
+</style></head><body>
+{% if status == 'ok' %}
+<h1>Klart!</h1><p>{{ antal }} tokens har lagts till. Du kan börja söka direkt.</p>
+{% elif status == 'redan' %}
+<h1>Redan inlöst</h1><p>Den här koden är redan använd.</p>
+{% else %}
+<h1>Ogiltig kod</h1><p>Vi hittar ingen present-kod som matchar.</p>
+{% endif %}
+<a href="/">Till sökningen →</a>
+</body></html>'''
+
+
+@app.route('/admin/tokens', methods=['GET', 'POST'])
+def admin_tokens():
+    if not _ar_admin():
+        return 'Ej hittad', 404
+    melding = ''
+    presentlank = ''
+    if request.method == 'POST':
+        handling = request.form.get('handling', '')
+        try:
+            antal = int(request.form.get('antal', '0') or '0')
+        except ValueError:
+            antal = 0
+        if antal <= 0:
+            melding = 'Ogiltigt antal.'
+        elif handling == 'mail':
+            mail = _norm_email(request.form.get('mail', ''))
+            if '@' not in mail:
+                melding = 'Ogiltig mail.'
+            else:
+                add_tokens(mail, antal)
+                melding = f'La till {antal} tokens på {mail} (totalt {get_tokens(mail)}).'
+        elif handling == 'kod':
+            kod = secrets.token_urlsafe(6)
+            con = sqlite3.connect(DB)
+            con.execute('INSERT INTO presentkoder (kod, tokens) VALUES (?, ?)', (kod, antal))
+            con.commit()
+            con.close()
+            presentlank = request.host_url + 'losa-in?kod=' + kod
+            melding = f'Present-kod för {antal} tokens skapad:'
+    return render_template_string(
+        ADMIN_TOKENS_HTML,
+        nyckel=request.values.get('nyckel', ''),
+        melding=melding,
+        presentlank=presentlank,
+    )
+
+
+@app.route('/losa-in')
+@limiter.limit('10 per minute')
+def losa_in():
+    kod = request.args.get('kod', '').strip()
+    sid = get_session_id()
+    status = 'fel'
+    antal = 0
+    if kod:
+        con = sqlite3.connect(DB)
+        row = con.execute(
+            'SELECT tokens FROM presentkoder WHERE kod = ? AND inlost_av IS NULL', (kod,)
+        ).fetchone()
+        if row:
+            con.execute(
+                'UPDATE presentkoder SET inlost_av = ?, inlost_at = CURRENT_TIMESTAMP '
+                'WHERE kod = ? AND inlost_av IS NULL', (sid, kod)
+            )
+            if con.execute('SELECT changes()').fetchone()[0] > 0:
+                con.commit()
+                antal = row[0]
+                add_tokens(sid, antal)
+                status = 'ok'
+            else:
+                status = 'redan'
+        else:
+            finns = con.execute('SELECT 1 FROM presentkoder WHERE kod = ?', (kod,)).fetchone()
+            status = 'redan' if finns else 'fel'
+        con.close()
+
+    resp = make_response(render_template_string(LOSA_IN_HTML, status=status, antal=antal))
+    if not request.cookies.get('nk_email') and not request.cookies.get('sid'):
+        resp.set_cookie('sid', sid, max_age=60 * 60 * 24 * 365, samesite='Lax')
+    return resp
+
+
 @app.route('/stripe-webhook', methods=['POST'])
 def stripe_webhook():
     payload = request.get_data()
@@ -3240,24 +3413,34 @@ def stripe_webhook():
     print(f'[WEBHOOK] event.type={event["type"]}', flush=True)
 
     if event['type'] == 'checkout.session.completed':
-        sess = event['data']['object']
-        customer_email = getattr(sess, 'customer_email', None)
-        print(f'[WEBHOOK] customer_email={customer_email}', flush=True)
+        stripe_sid = getattr(event['data']['object'], 'id', '')
         try:
-            sid = sess.metadata['session_id']
-        except (KeyError, AttributeError, TypeError):
-            sid = None
+            sess = stripe.checkout.Session.retrieve(stripe_sid)
+        except Exception as e:
+            print(f'[WEBHOOK] kunde ej hämta session {stripe_sid}: {e}', flush=True)
+            return '', 200
+
+        details = getattr(sess, 'customer_details', None)
+        buyer_email = _norm_email((getattr(details, 'email', None) if details else None)
+                                  or getattr(sess, 'customer_email', None))
         try:
-            tokens = int(sess.metadata['tokens'])
-        except (KeyError, AttributeError, TypeError, ValueError):
+            purchase_sid = sess.metadata.get('session_id')
+        except Exception:
+            purchase_sid = None
+        try:
+            tokens = int(sess.metadata.get('tokens', 0) or 0)
+        except (TypeError, ValueError):
             tokens = 0
-        stripe_sid = getattr(sess, 'id', '')
-        print(f'[WEBHOOK] sid={sid} tokens={tokens} stripe_sid={stripe_sid}', flush=True)
-        if sid and tokens and markera_betald(stripe_sid):
-            add_tokens(sid, tokens)
-            print(f'[WEBHOOK] Lade till {tokens} tokens för sid={sid}', flush=True)
-        else:
-            print(f'[WEBHOOK] Redan hanterad eller saknar data', flush=True)
+
+        target = buyer_email or purchase_sid
+        print(f'[WEBHOOK] buyer_email={buyer_email} purchase_sid={purchase_sid} '
+              f'tokens={tokens} stripe_sid={stripe_sid}', flush=True)
+
+        if target and tokens and markera_betald(stripe_sid):
+            add_tokens(target, tokens)
+            print(f'[WEBHOOK] Lade till {tokens} tokens på {target}', flush=True)
+        if buyer_email and purchase_sid:
+            _merge_tokens(purchase_sid, buyer_email)
 
     return '', 200
 
@@ -3313,22 +3496,28 @@ def tack():
     tokens_tillagda = 0
     email = ''
 
-    if stripe_session_id and markera_betald(stripe_session_id):
+    if stripe_session_id:
         try:
             sess = stripe.checkout.Session.retrieve(stripe_session_id)
-            print(f'[TACK] payment_status={sess.payment_status} email={sess.customer_email} belopp={sess.amount_total}', flush=True)
+            details = getattr(sess, 'customer_details', None)
+            email = _norm_email((getattr(details, 'email', None) if details else None)
+                                or getattr(sess, 'customer_email', None))
+            print(f'[TACK] payment_status={sess.payment_status} email={email} '
+                  f'belopp={getattr(sess, "amount_total", None)}', flush=True)
             if sess.payment_status == 'paid':
-                email = sess.customer_email or ''
                 tokens_tillagda = BELOPP_TOKENS.get(getattr(sess, 'amount_total', 0), 0)
                 if not tokens_tillagda:
                     try:
-                        tokens_tillagda = int(sess.metadata['tokens'])
-                    except (KeyError, AttributeError, TypeError, ValueError):
+                        tokens_tillagda = int(sess.metadata.get('tokens', 0) or 0)
+                    except (TypeError, ValueError):
                         tokens_tillagda = 0
                 user_key = email or get_session_id()
-                if tokens_tillagda and user_key:
+                if tokens_tillagda and user_key and markera_betald(stripe_session_id):
                     add_tokens(user_key, tokens_tillagda)
-                    print(f'[TACK] Lade till {tokens_tillagda} tokens för {user_key}', flush=True)
+                    print(f'[TACK] Lade till {tokens_tillagda} tokens på {user_key}', flush=True)
+                purchase_sid = sess.metadata.get('session_id')
+                if email and purchase_sid:
+                    _merge_tokens(purchase_sid, email)
         except Exception as e:
             print(f'[TACK] Stripe-fel: {e}', flush=True)
 
